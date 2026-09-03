@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "writing-journal"
+version = "0.1.0"
+description = "Digitize handwritten writing, organize it into projects, and generate ideas from it with Claude."
+requires-python = ">=3.9"
+dependencies = [
+    "anthropic>=0.40.0",
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+writing = "writing_journal.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
