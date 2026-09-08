@@ -18,6 +18,8 @@ from pathlib import Path
 import yaml
 
 from .entry import Entry, new_entry_id, parse_markdown
+from .idea import Idea, new_idea_id
+from .idea import parse_markdown as parse_idea_markdown
 
 
 def default_projects_root() -> Path:
@@ -39,6 +41,10 @@ class EntryNotFoundError(Exception):
     pass
 
 
+class IdeaNotFoundError(Exception):
+    pass
+
+
 class Project:
     def __init__(self, root: Path, name: str):
         self.root = root
@@ -56,6 +62,16 @@ class Project:
     @property
     def ideas_dir(self) -> Path:
         return self.path / "ideas"
+
+    @property
+    def ideas_reports_dir(self) -> Path:
+        """Freeform synthesis reports from `writing ideas` (themes, connections)."""
+        return self.ideas_dir / "reports"
+
+    @property
+    def ideas_items_dir(self) -> Path:
+        """The bucketed idea repository: one file per idea, filed under a category."""
+        return self.ideas_dir / "items"
 
     @property
     def meta_path(self) -> Path:
@@ -111,6 +127,59 @@ class Project:
             candidate = f"{base}-{suffix}"
         return candidate
 
+    def idea_path(self, idea_id: str) -> Path:
+        return self.ideas_items_dir / f"{idea_id}.md"
+
+    def save_idea(self, idea: Idea) -> Path:
+        self.ideas_items_dir.mkdir(parents=True, exist_ok=True)
+        path = self.idea_path(idea.id)
+        path.write_text(idea.to_markdown(), encoding="utf-8")
+        return path
+
+    def load_idea(self, idea_id: str) -> Idea:
+        path = self.idea_path(idea_id)
+        if not path.exists():
+            raise IdeaNotFoundError(idea_id)
+        return parse_idea_markdown(path)
+
+    def allocate_idea_id(self, now: datetime | None = None) -> str:
+        self.ideas_items_dir.mkdir(parents=True, exist_ok=True)
+        base = new_idea_id(now)
+        candidate = base
+        suffix = 1
+        while (self.ideas_items_dir / f"{candidate}.md").exists():
+            suffix += 1
+            candidate = f"{base}-{suffix}"
+        return candidate
+
+    def list_ideas(
+        self,
+        bucket: str | None = None,
+        tag: str | None = None,
+        status: str | None = None,
+    ) -> list[Idea]:
+        ideas = []
+        if not self.ideas_items_dir.is_dir():
+            return ideas
+        for path in sorted(self.ideas_items_dir.glob("*.md")):
+            idea = parse_idea_markdown(path)
+            if bucket and idea.bucket.strip().casefold() != bucket.strip().casefold():
+                continue
+            if tag and tag not in idea.tags:
+                continue
+            if status and idea.status != status:
+                continue
+            ideas.append(idea)
+        ideas.sort(key=lambda i: i.date, reverse=True)
+        return ideas
+
+    def list_buckets(self, status: str | None = "open") -> dict[str, int]:
+        """Bucket name -> idea count, i.e. an index into the idea repository."""
+        counts: dict[str, int] = {}
+        for idea in self.list_ideas(status=status):
+            counts[idea.bucket] = counts.get(idea.bucket, 0) + 1
+        return counts
+
     def search(self, query: str, tag: str | None = None) -> list[tuple[Entry, str]]:
         query_lower = query.lower()
         results = []
@@ -144,7 +213,8 @@ def init_project(root: Path, name: str) -> Project:
         raise ProjectExistsError(name)
     project.entries_dir.mkdir(parents=True)
     project.sources_dir.mkdir(parents=True)
-    project.ideas_dir.mkdir(parents=True)
+    project.ideas_reports_dir.mkdir(parents=True)
+    project.ideas_items_dir.mkdir(parents=True)
     project.save_meta({"name": name, "created": datetime.now().isoformat(timespec="seconds")})
     return project
 

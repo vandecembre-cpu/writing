@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import base64
+import json
 import os
+import re
 from pathlib import Path
 
 DEFAULT_MODEL = os.environ.get("WRITING_JOURNAL_MODEL", "claude-sonnet-5")
@@ -114,3 +116,87 @@ def generate_ideas(entries_text: str, focus: str | None = None, n: int = 8, mode
         messages=[{"role": "user", "content": prompt}],
     )
     return "".join(block.text for block in response.content if block.type == "text").strip()
+
+
+class IdeaExtractionError(RuntimeError):
+    pass
+
+
+IDEA_EXTRACTION_SYSTEM_PROMPT = (
+    "You are a sharp, generous writing collaborator who reads a writer's own archive and pulls out "
+    "individual, reusable ideas for future pieces. You quote or paraphrase specifics from the text "
+    "rather than speaking generically, and you never invent facts about the writer's life beyond what's "
+    "in the text. You respond with ONLY a JSON array — no markdown fences, no commentary, no keys other "
+    "than the ones requested."
+)
+
+
+def build_idea_extraction_prompt(
+    entries_text: str,
+    existing_buckets: list[str] | None = None,
+    focus: str | None = None,
+    n: int = 8,
+) -> str:
+    focus_line = f"\nThe writer specifically wants ideas related to: {focus}\n" if focus else ""
+    buckets_line = (
+        f"\nBuckets already in use in this writer's idea repository (reuse one where it genuinely fits "
+        f"rather than inventing a near-duplicate): {', '.join(existing_buckets)}\n"
+        if existing_buckets
+        else "\nThis writer has no buckets yet — invent a small set of clear, reusable category names.\n"
+    )
+    return f"""Below are entries from a writer's personal archive, each headed by its entry id, date, and title.
+{focus_line}{buckets_line}
+Read across all of them and pull out {n} distinct, concrete ideas for future pieces (essays, poems, scenes,
+projects — whatever fits the material). Each idea should be one or two sentences: a specific hook grounded
+in something the writer actually wrote, not generic advice.
+
+For each idea, also assign it to ONE bucket: a short (1-4 word) category name for the kind of writing or
+theme it belongs to, so the writer can browse their idea repository by bucket later (e.g. "Family",
+"Craft Notes", "Place & Memory", "Career"). Prefer reusing an existing bucket when it genuinely fits.
+
+Respond with ONLY a JSON array (no markdown fences, no commentary) of exactly {n} objects, each shaped like:
+
+{{"text": "...", "bucket": "...", "tags": ["...", "..."], "source_entries": ["<entry id>", ...]}}
+
+- "text": the idea itself, one or two sentences.
+- "bucket": the single category name for this idea.
+- "tags": 0-3 short lowercase keywords for this idea specifically (not the bucket name).
+- "source_entries": the entry id(s) (from the headers below) this idea draws on.
+
+--- ENTRIES ---
+
+{entries_text}
+"""
+
+
+def _parse_json_array(text: str) -> list[dict]:
+    text = text.strip()
+    fence = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, re.DOTALL)
+    if fence:
+        text = fence.group(1).strip()
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise IdeaExtractionError(f"Could not parse ideas as JSON: {e}\n\n{text}") from e
+    if not isinstance(data, list):
+        raise IdeaExtractionError(f"Expected a JSON array of ideas, got: {type(data).__name__}")
+    return data
+
+
+def extract_ideas(
+    entries_text: str,
+    existing_buckets: list[str] | None = None,
+    focus: str | None = None,
+    n: int = 8,
+    model: str = DEFAULT_MODEL,
+) -> list[dict]:
+    client = get_client()
+    prompt = build_idea_extraction_prompt(entries_text, existing_buckets, focus, n)
+    response = client.messages.create(
+        model=model,
+        max_tokens=4096,
+        system=IDEA_EXTRACTION_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = "".join(block.text for block in response.content if block.type == "text").strip()
+    return _parse_json_array(raw)

@@ -26,3 +26,35 @@ def test_image_block_rejects_unsupported_extension(tmp_path):
     bad.write_bytes(b"x")
     with pytest.raises(ValueError):
         ai._image_block(bad)
+
+
+def test_build_idea_extraction_prompt_includes_existing_buckets():
+    prompt = ai.build_idea_extraction_prompt("ENTRY TEXT HERE", existing_buckets=["Family", "Craft"], n=5)
+    assert "Family, Craft" in prompt
+    assert "exactly 5 objects" in prompt
+    assert "ENTRY TEXT HERE" in prompt
+
+
+def test_build_idea_extraction_prompt_without_existing_buckets():
+    prompt = ai.build_idea_extraction_prompt("ENTRY TEXT HERE", existing_buckets=None, n=3)
+    assert "no buckets yet" in prompt
+
+
+def test_parse_json_array_handles_plain_json():
+    data = ai._parse_json_array('[{"text": "a", "bucket": "Craft"}]')
+    assert data == [{"text": "a", "bucket": "Craft"}]
+
+
+def test_parse_json_array_strips_markdown_fence():
+    data = ai._parse_json_array('```json\n[{"text": "a", "bucket": "Craft"}]\n```')
+    assert data == [{"text": "a", "bucket": "Craft"}]
+
+
+def test_parse_json_array_rejects_non_array():
+    with pytest.raises(ai.IdeaExtractionError):
+        ai._parse_json_array('{"text": "a"}')
+
+
+def test_parse_json_array_rejects_invalid_json():
+    with pytest.raises(ai.IdeaExtractionError):
+        ai._parse_json_array("not json at all")

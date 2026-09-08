@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import ai, storage
 from .entry import Entry
+from .idea import STATUSES, Idea
 
 
 def _resolve_project(args) -> storage.Project:
@@ -225,7 +226,7 @@ def cmd_ideas(args):
     blocks = []
     for e in entries:
         tags = f" [{', '.join(e.tags)}]" if e.tags else ""
-        blocks.append(f"### {e.date} — {e.title}{tags}\n\n{e.text}")
+        blocks.append(f"### {e.id} — {e.date} — {e.title}{tags}\n\n{e.text}")
     entries_text = "\n\n---\n\n".join(blocks)
 
     print(
@@ -242,15 +243,144 @@ def cmd_ideas(args):
     print(report)
 
     if not args.no_save:
-        project.ideas_dir.mkdir(parents=True, exist_ok=True)
+        project.ideas_reports_dir.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        out_path = project.ideas_dir / f"{stamp}.md"
+        out_path = project.ideas_reports_dir / f"{stamp}.md"
         header = f"<!-- generated {datetime.now().isoformat(timespec='seconds')}"
         if args.focus:
             header += f", focus: {args.focus}"
         header += " -->\n\n"
         out_path.write_text(header + report + "\n", encoding="utf-8")
-        print(f"\nSaved to {out_path}", file=sys.stderr)
+        print(f"\nSaved report to {out_path}", file=sys.stderr)
+
+    if not args.no_bucket:
+        existing_buckets = sorted(project.list_buckets(status=None))
+        print(f"\nSorting ideas into buckets with {ai.DEFAULT_MODEL}...", file=sys.stderr)
+        try:
+            items = ai.extract_ideas(
+                entries_text,
+                existing_buckets=existing_buckets,
+                focus=args.focus,
+                n=args.count,
+                model=args.model,
+            )
+        except ai.MissingApiKeyError as e:
+            print(str(e), file=sys.stderr)
+            sys.exit(1)
+        except ai.IdeaExtractionError as e:
+            print(f"Couldn't sort ideas into buckets: {e}", file=sys.stderr)
+            items = []
+
+        now = datetime.now()
+        saved_counts: dict[str, int] = {}
+        for item in items:
+            text = str(item.get("text", "")).strip()
+            if not text:
+                continue
+            bucket = str(item.get("bucket") or "").strip() or "uncategorized"
+            idea = Idea(
+                id=project.allocate_idea_id(now),
+                text=text,
+                bucket=bucket,
+                date=now.isoformat(timespec="seconds"),
+                tags=[str(t).strip() for t in item.get("tags") or [] if str(t).strip()],
+                source_entries=[str(s).strip() for s in item.get("source_entries") or [] if str(s).strip()],
+                status="open",
+                origin="ai",
+            )
+            project.save_idea(idea)
+            saved_counts[bucket] = saved_counts.get(bucket, 0) + 1
+
+        if saved_counts:
+            summary = ", ".join(f"{b} ({n})" for b, n in sorted(saved_counts.items()))
+            print(
+                f"\nAdded {sum(saved_counts.values())} ideas to the bucket repository: {summary}",
+                file=sys.stderr,
+            )
+
+
+def cmd_idea_add(args):
+    project = _resolve_project(args)
+    now = datetime.now()
+    idea = Idea(
+        id=project.allocate_idea_id(now),
+        text=args.text.strip(),
+        bucket=args.bucket.strip(),
+        date=now.isoformat(timespec="seconds"),
+        tags=_parse_tags(args.tags),
+        source_entries=_parse_tags(args.source),
+        status="open",
+        origin="manual",
+    )
+    project.save_idea(idea)
+    print(f"Saved idea {idea.id} -> [{idea.bucket}] {idea.text}")
+
+
+def cmd_idea_list(args):
+    project = _resolve_project(args)
+    status = None if args.status == "all" else args.status
+    ideas = project.list_ideas(bucket=args.bucket, tag=args.tag, status=status)
+    if not ideas:
+        print("No ideas match.")
+        return
+    ideas.sort(key=lambda i: i.bucket.casefold())  # stable: keeps newest-first within each bucket
+    current_bucket = None
+    for i in ideas:
+        if i.bucket != current_bucket:
+            current_bucket = i.bucket
+            print(f"\n== {current_bucket} ==")
+        tags = f" [{', '.join(i.tags)}]" if i.tags else ""
+        flag = "" if i.status == "open" else f" ({i.status})"
+        print(f"{i.id}  {i.text}{tags}{flag}")
+
+
+def cmd_idea_show(args):
+    project = _resolve_project(args)
+    try:
+        i = project.load_idea(args.id)
+    except storage.IdeaNotFoundError:
+        print(f"No idea '{args.id}' in project '{project.name}'.", file=sys.stderr)
+        sys.exit(1)
+    print(f"[{i.bucket}]  {i.status}  ({i.origin})")
+    print(f"{i.date}  [{', '.join(i.tags) or 'no tags'}]")
+    if i.source_entries:
+        print(f"source entries: {', '.join(i.source_entries)}")
+    print()
+    print(i.text)
+
+
+def cmd_idea_bucket(args):
+    project = _resolve_project(args)
+    try:
+        i = project.load_idea(args.id)
+    except storage.IdeaNotFoundError:
+        print(f"No idea '{args.id}' in project '{project.name}'.", file=sys.stderr)
+        sys.exit(1)
+    i.bucket = args.bucket.strip()
+    project.save_idea(i)
+    print(f"{i.id} bucket: {i.bucket}")
+
+
+def cmd_idea_status(args):
+    project = _resolve_project(args)
+    try:
+        i = project.load_idea(args.id)
+    except storage.IdeaNotFoundError:
+        print(f"No idea '{args.id}' in project '{project.name}'.", file=sys.stderr)
+        sys.exit(1)
+    i.status = args.status
+    project.save_idea(i)
+    print(f"{i.id} status: {i.status}")
+
+
+def cmd_buckets(args):
+    project = _resolve_project(args)
+    counts = project.list_buckets(status=None if args.all else "open")
+    if not counts:
+        print("No ideas yet. Run 'writing ideas' or 'writing idea-add' to start filling the repository.")
+        return
+    for bucket, count in sorted(counts.items(), key=lambda kv: kv[0].casefold()):
+        print(f"{bucket}\t{count}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -318,9 +448,49 @@ def build_parser() -> argparse.ArgumentParser:
     p_ideas.add_argument("--focus", help="Steer the ideas toward a topic/theme")
     p_ideas.add_argument("--count", type=int, default=8, help="How many ideas to generate (default 8)")
     p_ideas.add_argument("--model", default=ai.DEFAULT_MODEL)
-    p_ideas.add_argument("--no-save", action="store_true", help="Don't save the report under ideas/")
+    p_ideas.add_argument("--no-save", action="store_true", help="Don't save the report under ideas/reports/")
+    p_ideas.add_argument(
+        "--no-bucket", action="store_true", help="Don't extract individual ideas into the bucket repository"
+    )
     add_project_arg(p_ideas)
     p_ideas.set_defaults(func=cmd_ideas)
+
+    p_idea_add = sub.add_parser("idea-add", help="Add an idea to the bucketed idea repository by hand")
+    p_idea_add.add_argument("text", help="The idea itself")
+    p_idea_add.add_argument("--bucket", required=True, help="Category to file this idea under")
+    p_idea_add.add_argument("--tags", help="Comma-separated tags")
+    p_idea_add.add_argument("--source", help="Comma-separated entry id(s) this idea draws on")
+    add_project_arg(p_idea_add)
+    p_idea_add.set_defaults(func=cmd_idea_add)
+
+    p_idea_list = sub.add_parser("idea-list", help="Browse the bucketed idea repository")
+    p_idea_list.add_argument("--bucket")
+    p_idea_list.add_argument("--tag")
+    p_idea_list.add_argument("--status", choices=["open", "used", "archived", "all"], default="open")
+    add_project_arg(p_idea_list)
+    p_idea_list.set_defaults(func=cmd_idea_list)
+
+    p_idea_show = sub.add_parser("idea-show", help="Show one idea, with its source entries")
+    p_idea_show.add_argument("id")
+    add_project_arg(p_idea_show)
+    p_idea_show.set_defaults(func=cmd_idea_show)
+
+    p_idea_bucket = sub.add_parser("idea-bucket", help="Recategorize an idea into a different bucket")
+    p_idea_bucket.add_argument("id")
+    p_idea_bucket.add_argument("bucket")
+    add_project_arg(p_idea_bucket)
+    p_idea_bucket.set_defaults(func=cmd_idea_bucket)
+
+    p_idea_status = sub.add_parser("idea-status", help="Mark an idea open/used/archived")
+    p_idea_status.add_argument("id")
+    p_idea_status.add_argument("status", choices=list(STATUSES))
+    add_project_arg(p_idea_status)
+    p_idea_status.set_defaults(func=cmd_idea_status)
+
+    p_buckets = sub.add_parser("buckets", help="List idea buckets and how many open ideas are in each")
+    p_buckets.add_argument("--all", action="store_true", help="Include used/archived ideas in the counts")
+    add_project_arg(p_buckets)
+    p_buckets.set_defaults(func=cmd_buckets)
 
     return parser
 

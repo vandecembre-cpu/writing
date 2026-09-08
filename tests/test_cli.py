@@ -92,8 +92,65 @@ def test_ideas_command_generates_and_saves_report(projects_dir, tmp_path, monkey
         ai, "generate_ideas", lambda entries_text, focus=None, n=8, model=None: "## Recurring themes\n- starting over"
     )
 
-    out = run(["ideas", "--project", "notebook", "--no-save"])
+    out = run(["ideas", "--project", "notebook", "--no-save", "--no-bucket"])
     assert "Recurring themes" in out
+
+
+def test_ideas_command_sorts_extracted_ideas_into_buckets(projects_dir, tmp_path, monkeypatch):
+    run(["init", "notebook"])
+    text_file = tmp_path / "note.txt"
+    text_file.write_text("A typed thought about starting over.")
+    run(["add-text", "--project", "notebook", "--file", str(text_file)])
+    project = storage.open_project(projects_dir, "notebook")
+    entry_id = project.list_entries()[0].id
+
+    monkeypatch.setattr(ai, "generate_ideas", lambda entries_text, focus=None, n=8, model=None: "## Recurring themes")
+    monkeypatch.setattr(
+        ai,
+        "extract_ideas",
+        lambda entries_text, existing_buckets=None, focus=None, n=8, model=None: [
+            {"text": "Write about starting over.", "bucket": "Fresh Starts", "tags": ["change"], "source_entries": [entry_id]},
+            {"text": "Explore the idea of a clean slate.", "bucket": "Fresh Starts", "source_entries": [entry_id]},
+        ],
+    )
+
+    run(["ideas", "--project", "notebook", "--no-save"])
+
+    ideas = project.list_ideas()
+    assert len(ideas) == 2
+    assert {i.bucket for i in ideas} == {"Fresh Starts"}
+    assert ideas[0].source_entries == [entry_id]
+    assert ideas[0].origin == "ai"
+
+    buckets_out = run(["buckets", "--project", "notebook"])
+    assert "Fresh Starts\t2" in buckets_out
+
+
+def test_idea_add_list_show_bucket_and_status(projects_dir):
+    run(["init", "notebook"])
+    out = run(["idea-add", "A stray idea about the sea.", "--bucket", "Place", "--tags", "ocean", "--project", "notebook"])
+    assert "Saved idea" in out
+
+    project = storage.open_project(projects_dir, "notebook")
+    idea_id = project.list_ideas()[0].id
+
+    listed = run(["idea-list", "--project", "notebook"])
+    assert idea_id in listed and "Place" in listed
+
+    shown = run(["idea-show", idea_id, "--project", "notebook"])
+    assert "sea" in shown
+
+    run(["idea-bucket", idea_id, "Ocean & Water", "--project", "notebook"])
+    assert project.load_idea(idea_id).bucket == "Ocean & Water"
+
+    run(["idea-status", idea_id, "used", "--project", "notebook"])
+    assert project.load_idea(idea_id).status == "used"
+
+    # default idea-list only shows open ideas
+    open_listing = run(["idea-list", "--project", "notebook"])
+    assert "No ideas match." in open_listing
+    all_listing = run(["idea-list", "--status", "all", "--project", "notebook"])
+    assert idea_id in all_listing
 
 
 def test_resolve_project_requires_disambiguation_with_multiple(projects_dir, capsys):
