@@ -33,6 +33,20 @@ pip install -e .
 export ANTHROPIC_API_KEY=sk-ant-...   # console.anthropic.com
 ```
 
+## Web UI
+
+```bash
+writing-ui
+# -> Writing UI running at http://127.0.0.1:5050
+```
+
+Open that URL in a browser to create projects, digitize photos, type entries,
+edit them, generate ideas, and browse/recategorize the bucket repository —
+everything below, without the command line. It's a small local Flask server
+bound to `127.0.0.1` only (set `WRITING_UI_PORT` to change the port), reading
+and writing the exact same `projects/` directory as the CLI, so the two are
+interchangeable.
+
 ## Usage
 
 ```bash

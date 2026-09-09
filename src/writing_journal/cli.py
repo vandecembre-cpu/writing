@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from . import ai, storage
-from .entry import Entry
+from . import actions, ai, storage
 from .idea import STATUSES, Idea
 
 
@@ -39,12 +37,6 @@ def _resolve_project(args) -> storage.Project:
     except storage.ProjectNotFoundError:
         print(f"No such project '{name}' under {root}.", file=sys.stderr)
         sys.exit(1)
-
-
-def _parse_tags(raw: str | None) -> list[str]:
-    if not raw:
-        return []
-    return [t.strip() for t in raw.split(",") if t.strip()]
 
 
 def cmd_init(args):
@@ -79,38 +71,14 @@ def cmd_add(args):
 
     print(f"Transcribing {len(image_paths)} image(s) with {ai.DEFAULT_MODEL}...", file=sys.stderr)
     try:
-        text = ai.transcribe_images(image_paths, model=args.model)
-    except ai.MissingApiKeyError as e:
+        entry = actions.add_digitized_entry(
+            project, image_paths, title=args.title, tags=actions.parse_tags(args.tags), model=args.model
+        )
+    except (ai.MissingApiKeyError, ValueError) as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
 
-    if not text:
-        print("Transcription came back empty; nothing saved.", file=sys.stderr)
-        sys.exit(1)
-
-    now = datetime.now()
-    entry_id = project.allocate_entry_id(now)
-
-    project.sources_dir.mkdir(parents=True, exist_ok=True)
-    saved_sources = []
-    for i, src in enumerate(image_paths):
-        dest_name = f"{entry_id}-{i}{src.suffix.lower()}"
-        dest = project.sources_dir / dest_name
-        shutil.copy2(src, dest)
-        saved_sources.append(str(dest.relative_to(project.path)))
-
-    title = args.title or text.strip().splitlines()[0][:80]
-    entry = Entry(
-        id=entry_id,
-        title=title,
-        date=now.isoformat(timespec="seconds"),
-        text=text,
-        tags=_parse_tags(args.tags),
-        source_images=saved_sources,
-        digitized_with=f"claude-vision ({args.model})",
-    )
-    path = project.save_entry(entry)
-    print(f"Saved entry {entry_id} -> {path}")
+    print(f"Saved entry {entry.id} -> {project.entry_path(entry.id)}")
 
 
 def cmd_add_text(args):
@@ -130,24 +98,12 @@ def cmd_add_text(args):
         finally:
             os.unlink(tmp_path)
 
-    text = text.strip()
-    if not text:
-        print("No text entered; nothing saved.", file=sys.stderr)
+    try:
+        entry = actions.add_text_entry(project, text, title=args.title, tags=actions.parse_tags(args.tags))
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
         sys.exit(1)
-
-    now = datetime.now()
-    entry_id = project.allocate_entry_id(now)
-    title = args.title or text.splitlines()[0][:80]
-    entry = Entry(
-        id=entry_id,
-        title=title,
-        date=now.isoformat(timespec="seconds"),
-        text=text,
-        tags=_parse_tags(args.tags),
-        digitized_with="typed",
-    )
-    path = project.save_entry(entry)
-    print(f"Saved entry {entry_id} -> {path}")
+    print(f"Saved entry {entry.id} -> {project.entry_path(entry.id)}")
 
 
 def cmd_list(args):
@@ -193,7 +149,7 @@ def cmd_tag(args):
     except storage.EntryNotFoundError:
         print(f"No entry '{args.id}' in project '{project.name}'.", file=sys.stderr)
         sys.exit(1)
-    new_tags = _parse_tags(args.tags)
+    new_tags = actions.parse_tags(args.tags)
     if args.remove:
         entry.tags = [t for t in entry.tags if t not in new_tags]
     else:
@@ -222,81 +178,39 @@ def cmd_ideas(args):
         print("No entries to generate ideas from.", file=sys.stderr)
         sys.exit(1)
 
-    entries = list(reversed(entries))  # chronological order reads better for the model
-    blocks = []
-    for e in entries:
-        tags = f" [{', '.join(e.tags)}]" if e.tags else ""
-        blocks.append(f"### {e.id} — {e.date} — {e.title}{tags}\n\n{e.text}")
-    entries_text = "\n\n---\n\n".join(blocks)
-
     print(
         f"Generating ideas from {len(entries)} entr{'y' if len(entries) == 1 else 'ies'} "
         f"with {ai.DEFAULT_MODEL}...",
         file=sys.stderr,
     )
     try:
-        report = ai.generate_ideas(entries_text, focus=args.focus, n=args.count, model=args.model)
+        result = actions.run_ideas_pipeline(
+            project,
+            entries,
+            focus=args.focus,
+            n=args.count,
+            model=args.model,
+            save_report=not args.no_save,
+            save_buckets=not args.no_bucket,
+        )
     except ai.MissingApiKeyError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
 
-    print(report)
+    print(result.report)
 
-    if not args.no_save:
-        project.ideas_reports_dir.mkdir(parents=True, exist_ok=True)
-        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        out_path = project.ideas_reports_dir / f"{stamp}.md"
-        header = f"<!-- generated {datetime.now().isoformat(timespec='seconds')}"
-        if args.focus:
-            header += f", focus: {args.focus}"
-        header += " -->\n\n"
-        out_path.write_text(header + report + "\n", encoding="utf-8")
-        print(f"\nSaved report to {out_path}", file=sys.stderr)
+    if result.report_path:
+        print(f"\nSaved report to {result.report_path}", file=sys.stderr)
 
-    if not args.no_bucket:
-        existing_buckets = sorted(project.list_buckets(status=None))
-        print(f"\nSorting ideas into buckets with {ai.DEFAULT_MODEL}...", file=sys.stderr)
-        try:
-            items = ai.extract_ideas(
-                entries_text,
-                existing_buckets=existing_buckets,
-                focus=args.focus,
-                n=args.count,
-                model=args.model,
-            )
-        except ai.MissingApiKeyError as e:
-            print(str(e), file=sys.stderr)
-            sys.exit(1)
-        except ai.IdeaExtractionError as e:
-            print(f"Couldn't sort ideas into buckets: {e}", file=sys.stderr)
-            items = []
+    if result.extraction_error:
+        print(f"Couldn't sort ideas into buckets: {result.extraction_error}", file=sys.stderr)
 
-        now = datetime.now()
-        saved_counts: dict[str, int] = {}
-        for item in items:
-            text = str(item.get("text", "")).strip()
-            if not text:
-                continue
-            bucket = str(item.get("bucket") or "").strip() or "uncategorized"
-            idea = Idea(
-                id=project.allocate_idea_id(now),
-                text=text,
-                bucket=bucket,
-                date=now.isoformat(timespec="seconds"),
-                tags=[str(t).strip() for t in item.get("tags") or [] if str(t).strip()],
-                source_entries=[str(s).strip() for s in item.get("source_entries") or [] if str(s).strip()],
-                status="open",
-                origin="ai",
-            )
-            project.save_idea(idea)
-            saved_counts[bucket] = saved_counts.get(bucket, 0) + 1
-
-        if saved_counts:
-            summary = ", ".join(f"{b} ({n})" for b, n in sorted(saved_counts.items()))
-            print(
-                f"\nAdded {sum(saved_counts.values())} ideas to the bucket repository: {summary}",
-                file=sys.stderr,
-            )
+    if result.saved_counts:
+        summary = ", ".join(f"{b} ({n})" for b, n in sorted(result.saved_counts.items()))
+        print(
+            f"\nAdded {sum(result.saved_counts.values())} ideas to the bucket repository: {summary}",
+            file=sys.stderr,
+        )
 
 
 def cmd_idea_add(args):
@@ -307,8 +221,8 @@ def cmd_idea_add(args):
         text=args.text.strip(),
         bucket=args.bucket.strip(),
         date=now.isoformat(timespec="seconds"),
-        tags=_parse_tags(args.tags),
-        source_entries=_parse_tags(args.source),
+        tags=actions.parse_tags(args.tags),
+        source_entries=actions.parse_tags(args.source),
         status="open",
         origin="manual",
     )

@@ -10,10 +10,12 @@ requires-python = ">=3.9"
 dependencies = [
     "anthropic>=0.40.0",
     "PyYAML>=6.0",
+    "Flask>=3.0",
 ]
 
 [project.scripts]
 writing = "writing_journal.cli:main"
+writing-ui = "writing_journal.webui:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
