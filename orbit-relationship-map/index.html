@@ -38,7 +38,6 @@
   .brand h1{ font-family:var(--serif); font-weight:500; font-size:1.7rem; margin:0 0 12px; letter-spacing:-0.01em; }
   .brand p{ margin:0; font-size:0.86rem; line-height:1.65; color:var(--ink-muted); }
   .badge{ display:inline-block; margin-top:18px; font-size:0.68rem; letter-spacing:0.04em; text-transform:uppercase; padding:0; color:var(--ink-muted); }
-  .badge.shared{ color:var(--tier-2); }
 
   .section{ padding:28px 32px; border-top:1px solid var(--line); }
   .section h2{ font-size:0.7rem; font-weight:600; letter-spacing:0.08em; color:var(--ink-muted); margin:0 0 18px; text-transform:uppercase; }
@@ -123,7 +122,7 @@
     <div class="brand">
       <h1>Orbit</h1>
       <p>Where the people in your life actually are, at real distance and direction from you — grouped, ringed by how close you are.</p>
-      <span class="badge" id="mode-badge">Loading…</span>
+      <span class="badge" id="mode-badge">Nothing is saved — refreshing clears this map</span>
     </div>
 
     <div class="section">
@@ -193,7 +192,6 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = 'orbit-relationship-map-v2';
   const TIER_COLOR = {0:'#A32638', 1:'#C9971F', 2:'#1C7A4B', 3:'#2452A6', 4:'#6E3FA3'};
   const TIER_LABEL = {0:'Family', 1:'Inner circle', 2:'Close friend', 3:'Friend', 4:'Acquaintance'};
   const TIER_NODE_R = {0:8.5, 1:8, 2:6.5, 3:5.5, 4:4.5};
@@ -302,85 +300,17 @@
 
   let people = [];
   let youLoc = null;
-  let mode = 'local';
-  let canEdit = true;
-  let dbDocRef = null;
+  const canEdit = true;
 
   function uid(){ return 'p-' + Math.random().toString(36).slice(2,10); }
 
-  function localSave(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({people, you: youLoc})); }catch(e){}
-  }
-
-  async function persist(){
-    if (mode === 'shared' && dbDocRef && canEdit){
-      try{
-        await dbDocRef.set({ people, you: youLoc });
-      }catch(e){
-        canEdit = false;
-        renderPermissionState();
-        alert("This map is read-only for you, so that change wasn't saved.");
-      }
-    } else if (mode === 'local'){
-      localSave();
-    }
+  function persist(){
     renderAll();
   }
 
-  function renderPermissionState(){
-    document.getElementById('add-section').style.display = canEdit ? '' : 'none';
-    document.getElementById('readonly-banner').style.display = canEdit ? 'none' : '';
-    document.getElementById('you-city').closest('.section').querySelectorAll('input,button').forEach(el => el.disabled = !canEdit);
-    document.getElementById('clear-btn').style.display = canEdit ? '' : 'none';
-    document.getElementById('example-btn').style.display = canEdit ? '' : 'none';
-  }
-
-  function setBadge(){
-    const b = document.getElementById('mode-badge');
-    if (mode === 'shared'){
-      b.textContent = canEdit ? 'Shared · you can edit' : 'Shared · view only';
-      b.classList.add('shared');
-    } else {
-      b.textContent = 'Saved to this browser only';
-      b.classList.remove('shared');
-    }
-  }
-
-  async function init(){
-    try{
-      if (window.claude && window.claude.use){
-        const db = await claude.use('db');
-        if (db){
-          mode = 'shared';
-          dbDocRef = db.doc('map/state');
-          try{
-            const user = await claude.use('user');
-            if (user){
-              const can = await user.can('data.write');
-              canEdit = (can !== false);
-            }
-          }catch(e){}
-          dbDocRef.onSnapshot(snap=>{
-            if (snap.exists){
-              const data = snap.data();
-              people = data.people || [];
-              youLoc = data.you || null;
-            } else {
-              people = []; youLoc = null;
-            }
-            setBadge(); renderPermissionState(); renderAll();
-          }, err=>{ console.error('db error', err); });
-          setBadge(); renderPermissionState();
-          return;
-        }
-      }
-    }catch(e){ console.error(e); }
-    mode = 'local'; canEdit = true;
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw){ const parsed = JSON.parse(raw); people = parsed.people || []; youLoc = parsed.you || null; }
-    }catch(e){}
-    setBadge(); renderPermissionState(); renderAll();
+  function init(){
+    document.getElementById('mode-badge').textContent = 'Nothing is saved — refreshing clears this map';
+    renderAll();
   }
 
   function renderYouCurrent(){
