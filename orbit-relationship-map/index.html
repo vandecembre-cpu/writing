@@ -11,9 +11,9 @@
 <style>
   :root{
     --bg: #FAFAF8; --panel: #FFFFFF; --panel-2: #FFFFFF; --line: #E7E5DF;
-    --ink: #1D1D1B; --ink-muted: #9C998F; --gold: #B08A55;
-    --tier-1: #B08A55; --tier-2: #6E9C93; --tier-3: #8087B0; --tier-4: #C7C4B8;
-    --tier-family: #C08A93;
+    --ink: #1D1D1B; --ink-muted: #9C998F; --gold: #C9971F;
+    --tier-1: #C9971F; --tier-2: #1C7A4B; --tier-3: #2452A6; --tier-4: #6E3FA3;
+    --tier-family: #A32638;
     --danger: #BD6A57;
     --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
     --sans: 'IBM Plex Sans', -apple-system, Helvetica, Arial, sans-serif;
@@ -92,6 +92,9 @@
   .node-label.you{ font-family:var(--serif); font-size:14px; font-weight:500; fill:var(--ink); pointer-events:none; }
   .ring-label{ font-family:var(--sans); font-size:10px; fill:var(--ink-muted); pointer-events:none; }
   .compass-label{ font-family:var(--sans); font-size:10px; fill:var(--ink-muted); letter-spacing:0.08em; pointer-events:none; }
+
+  .cluster-circle{ fill:var(--ink); fill-opacity:0.035; stroke:var(--ink-muted); stroke-opacity:0.4; stroke-width:1; stroke-dasharray:1,5; }
+  .cluster-label{ font-family:var(--sans); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; fill:var(--ink-muted); text-anchor:middle; pointer-events:none; }
 
   .legend{ position:absolute; left:36px; bottom:36px; padding:0; font-size:0.78rem; color:var(--ink-muted); }
   .legend h3{ margin:0 0 14px; font-size:0.68rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-muted); }
@@ -191,7 +194,7 @@
 <script>
 (function(){
   const STORAGE_KEY = 'orbit-relationship-map-v2';
-  const TIER_COLOR = {0:'#C08A93', 1:'#B08A55', 2:'#6E9C93', 3:'#8087B0', 4:'#C7C4B8'};
+  const TIER_COLOR = {0:'#A32638', 1:'#C9971F', 2:'#1C7A4B', 3:'#2452A6', 4:'#6E3FA3'};
   const TIER_LABEL = {0:'Family', 1:'Inner circle', 2:'Close friend', 3:'Friend', 4:'Acquaintance'};
   const TIER_NODE_R = {0:8.5, 1:8, 2:6.5, 3:5.5, 4:4.5};
 
@@ -572,6 +575,22 @@
       })
     ];
 
+    const nodesById = new Map(nodes.map(n => [n.id, n]));
+
+    const cityGroups = Array.from(d3.group(placed, p => p.city).entries())
+      .filter(([, arr]) => arr.length >= 2)
+      .map(([city, arr]) => ({ city, ids: arr.map(p => p.id) }));
+
+    const clusterGroup = g.append('g');
+    const clusterSel = clusterGroup.selectAll('g.cluster')
+      .data(cityGroups, d => d.city)
+      .join(enter => {
+        const cg = enter.append('g').attr('class', 'cluster');
+        cg.append('circle').attr('class', 'cluster-circle');
+        cg.append('text').attr('class', 'cluster-label');
+        return cg;
+      });
+
     const linkGroup = g.append('g');
     const linkSel = linkGroup.selectAll('line')
       .data(placed).join('line')
@@ -611,9 +630,18 @@
     function ticked(){
       linkSel
         .attr('x1', 0).attr('y1', 0)
-        .attr('x2', p => { const n = nodes.find(n=>n.id===p.id); return n ? n.x : 0; })
-        .attr('y2', p => { const n = nodes.find(n=>n.id===p.id); return n ? n.y : 0; });
+        .attr('x2', p => { const n = nodesById.get(p.id); return n ? n.x : 0; })
+        .attr('y2', p => { const n = nodesById.get(p.id); return n ? n.y : 0; });
       nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+      clusterSel.each(function(d){
+        const pts = d.ids.map(id => nodesById.get(id)).filter(Boolean);
+        if (!pts.length) return;
+        const cx = d3.mean(pts, p=>p.x), cy = d3.mean(pts, p=>p.y);
+        const r = Math.max(...pts.map(p => Math.hypot(p.x-cx, p.y-cy))) + 22;
+        const sel = d3.select(this);
+        sel.select('circle.cluster-circle').attr('cx', cx).attr('cy', cy).attr('r', r);
+        sel.select('text.cluster-label').attr('x', cx).attr('y', cy - r - 8).text(d.city);
+      });
     }
 
     if (unplaced.length){
