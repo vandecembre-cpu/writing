@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orbit — a map of your people</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root{
+    --bg: #FAFAF8; --panel: #FFFFFF; --panel-2: #FFFFFF; --line: #E7E5DF;
+    --ink: #1D1D1B; --ink-muted: #9C998F; --gold: #B08A55;
+    --tier-1: #B08A55; --tier-2: #6E9C93; --tier-3: #8087B0; --tier-4: #C7C4B8;
+    --tier-family: #C08A93;
+    --danger: #BD6A57;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans: 'IBM Plex Sans', -apple-system, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15151A; --panel:#1B1B20; --panel-2:#1B1B20; --line:#2B2B31;
+      --ink:#EDEDE8; --ink-muted:#8F8F97;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15151A; --panel:#1B1B20; --panel-2:#1B1B20; --line:#2B2B31;
+    --ink:#EDEDE8; --ink-muted:#8F8F97;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+  .app{ display:flex; height:100vh; width:100vw; overflow:hidden; }
+
+  .sidebar{ width:360px; min-width:360px; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; overflow-y:auto; }
+  .brand{ padding:44px 32px 28px; }
+  .brand h1{ font-family:var(--serif); font-weight:500; font-size:1.7rem; margin:0 0 12px; letter-spacing:-0.01em; }
+  .brand p{ margin:0; font-size:0.86rem; line-height:1.65; color:var(--ink-muted); }
+  .badge{ display:inline-block; margin-top:18px; font-size:0.68rem; letter-spacing:0.04em; text-transform:uppercase; padding:0; color:var(--ink-muted); }
+  .badge.shared{ color:var(--tier-2); }
+
+  .section{ padding:28px 32px; border-top:1px solid var(--line); }
+  .section h2{ font-size:0.7rem; font-weight:600; letter-spacing:0.08em; color:var(--ink-muted); margin:0 0 18px; text-transform:uppercase; }
+
+  label{ display:block; font-size:0.78rem; color:var(--ink-muted); margin:16px 0 6px; }
+  label:first-of-type{ margin-top:0; }
+  input[type="text"], select{
+    width:100%; padding:10px 2px; background:transparent; border:none; border-bottom:1px solid var(--line);
+    border-radius:0; color:var(--ink); font-family:var(--sans); font-size:0.92rem;
+  }
+  input[type="text"]:focus, select:focus{ outline:none; border-color:var(--ink); }
+  input[type="text"]::placeholder{ color:var(--ink-muted); opacity:0.7; }
+  select{ appearance:none; -webkit-appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0L5 6L10 0Z' fill='%239C998F'/></svg>");
+    background-repeat:no-repeat; background-position:right 4px center;
+  }
+  .row2{ display:flex; gap:20px; }
+  .row2 > *{ flex:1; }
+
+  .btn{ width:100%; margin-top:24px; padding:12px 14px; border-radius:2px; border:1px solid var(--ink);
+    background:var(--ink); color:var(--bg); font-weight:500; font-size:0.85rem; cursor:pointer; font-family:var(--sans);
+    letter-spacing:0.01em; transition:opacity 0.15s ease; }
+  .btn:hover{ opacity:0.82; }
+  .btn:active{ opacity:0.7; }
+  .btn:disabled{ opacity:0.3; cursor:not-allowed; }
+  .btn.ghost{ background:transparent; color:var(--ink-muted); border:1px solid var(--line); font-weight:500; }
+  .btn.ghost:hover{ color:var(--ink); border-color:var(--ink-muted); opacity:1; }
+  .btn.small{ width:auto; padding:9px 16px; margin-top:14px; font-size:0.78rem; }
+
+  .you-current{ font-size:0.84rem; color:var(--ink); padding:0 0 18px; margin-bottom:2px; }
+  .you-current .lbl{ color:var(--ink-muted); font-size:0.7rem; letter-spacing:0.04em; text-transform:uppercase; display:block; margin-bottom:6px; }
+
+  .people-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .person-row{ display:flex; align-items:center; gap:14px; padding:14px 0; border-top:1px solid var(--line); }
+  .person-row:first-child{ border-top:none; }
+  .dot{ width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
+  .person-meta{ flex:1; min-width:0; }
+  .person-meta .pname{ font-size:0.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .person-meta .pcity{ font-size:0.76rem; color:var(--ink-muted); margin-top:2px; }
+  .pcity.warn{ color:var(--danger); }
+  .remove{ background:none; border:none; color:var(--ink-muted); cursor:pointer; font-size:1rem; line-height:1; padding:4px 6px; opacity:0; transition:opacity 0.15s ease; }
+  .person-row:hover .remove{ opacity:1; }
+  .remove:hover{ color:var(--danger); }
+  .empty-note{ font-size:0.84rem; color:var(--ink-muted); line-height:1.6; padding:6px 0 2px; }
+
+  .readonly-banner{ margin:0; padding:14px 32px; border-bottom:1px solid var(--line); font-size:0.82rem; color:var(--ink-muted); }
+
+  .stage{ flex:1; position:relative; background:var(--bg); }
+  svg{ width:100%; height:100%; display:block; }
+  .node-label{ font-family:var(--sans); font-size:11px; fill:var(--ink); pointer-events:none; }
+  .node-label.you{ font-family:var(--serif); font-size:14px; font-weight:500; fill:var(--ink); pointer-events:none; }
+  .ring-label{ font-family:var(--sans); font-size:10px; fill:var(--ink-muted); pointer-events:none; }
+  .compass-label{ font-family:var(--sans); font-size:10px; fill:var(--ink-muted); letter-spacing:0.08em; pointer-events:none; }
+
+  .legend{ position:absolute; left:36px; bottom:36px; padding:0; font-size:0.78rem; color:var(--ink-muted); }
+  .legend h3{ margin:0 0 14px; font-size:0.68rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-muted); }
+  .legend-row{ display:flex; align-items:center; gap:10px; margin:7px 0; }
+  .legend-row .dot{ width:6px; height:6px; }
+  .legend .unit-note{ margin-top:14px; padding-top:14px; border-top:1px solid var(--line); font-size:0.72rem; max-width:170px; line-height:1.5; }
+
+  .hint{ position:absolute; top:36px; right:36px; font-size:0.72rem; color:var(--ink-muted); text-align:right; letter-spacing:0.01em; }
+
+  .empty-state{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:0 40px; }
+  .empty-state h2{ font-family:var(--serif); font-weight:500; font-size:1.5rem; margin:0 0 14px; letter-spacing:-0.01em; }
+  .empty-state p{ color:var(--ink-muted); max-width:360px; margin:0; font-size:0.92rem; line-height:1.65; }
+
+  @media (max-width:760px){
+    .app{ flex-direction:column; }
+    .sidebar{ width:100%; min-width:0; max-height:50vh; border-right:none; border-bottom:1px solid var(--line); }
+    .stage{ flex:1; }
+    .hint{ display:none; }
+    .legend{ left:20px; bottom:20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <h1>Orbit</h1>
+      <p>Where the people in your life actually are, at real distance and direction from you — grouped, ringed by how close you are.</p>
+      <span class="badge" id="mode-badge">Loading…</span>
+    </div>
+
+    <div class="section">
+      <h2>Your location</h2>
+      <div id="you-current" style="display:none" class="you-current">
+        <span class="lbl">Map is centered on</span>
+        <span id="you-current-label"></span>
+      </div>
+      <label for="you-city">City</label>
+      <input type="text" id="you-city" placeholder="e.g. Chicago, IL">
+      <div class="row2">
+        <button class="btn small" id="you-save">Set location</button>
+        <button class="btn small ghost" id="you-locate">Use current location</button>
+      </div>
+    </div>
+
+    <div class="section" id="add-section">
+      <h2>Add someone</h2>
+      <label for="f-name">Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Priya Shah">
+      <label for="f-city">City or place</label>
+      <input type="text" id="f-city" placeholder="e.g. Austin, TX">
+      <label for="f-tier">Tier</label>
+      <select id="f-tier">
+        <option value="0">Family</option>
+        <option value="1">Inner circle</option>
+        <option value="2">Close friend</option>
+        <option value="3">Friend</option>
+        <option value="4">Acquaintance</option>
+      </select>
+      <label for="f-note">Note (optional)</label>
+      <input type="text" id="f-note" placeholder="e.g. college roommate">
+      <button class="btn" id="add-btn">Add to map</button>
+    </div>
+
+    <div class="section" style="flex:1;">
+      <h2>Your people (<span id="count">0</span>)</h2>
+      <ul class="people-list" id="people-list"></ul>
+      <p class="empty-note" id="empty-note">Nobody added yet.</p>
+      <button class="btn ghost" id="example-btn">Load example data</button>
+      <button class="btn ghost" id="clear-btn">Clear all</button>
+    </div>
+  </div>
+
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+    <p class="readonly-banner" id="readonly-banner" style="display:none;">You're viewing this map. Only the owner can add or edit people.</p>
+    <div class="stage">
+      <svg id="canvas"></svg>
+      <div class="hint">Scroll to zoom · drag to pan · drag a person to nudge them</div>
+      <div class="legend">
+        <h3>Tiers</h3>
+        <div class="legend-row"><span class="dot" style="background:var(--ink)"></span>You</div>
+        <div class="legend-row"><span class="dot" style="background:var(--tier-family)"></span>Family</div>
+        <div class="legend-row"><span class="dot" style="background:var(--tier-1)"></span>Inner circle</div>
+        <div class="legend-row"><span class="dot" style="background:var(--tier-2)"></span>Close friend</div>
+        <div class="legend-row"><span class="dot" style="background:var(--tier-3)"></span>Friend</div>
+        <div class="legend-row"><span class="dot" style="background:var(--tier-4)"></span>Acquaintance</div>
+        <div class="unit-note">Rings = distance from you, in miles</div>
+      </div>
+      <div class="empty-state" id="empty-state">
+        <h2>Set your location to begin</h2>
+        <p>Everyone else is placed at their real distance and direction from you. Add your city on the left, then start adding people.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'orbit-relationship-map-v2';
+  const TIER_COLOR = {0:'#C08A93', 1:'#B08A55', 2:'#6E9C93', 3:'#8087B0', 4:'#C7C4B8'};
+  const TIER_LABEL = {0:'Family', 1:'Inner circle', 2:'Close friend', 3:'Friend', 4:'Acquaintance'};
+  const TIER_NODE_R = {0:8.5, 1:8, 2:6.5, 3:5.5, 4:4.5};
+
+  const CITY_DB = [
+    ["New York",40.7128,-74.0060],["Los Angeles",34.0522,-118.2437],["Chicago",41.8781,-87.6298],
+    ["Houston",29.7604,-95.3698],["Phoenix",33.4484,-112.0740],["Philadelphia",39.9526,-75.1652],
+    ["San Antonio",29.4241,-98.4936],["San Diego",32.7157,-117.1611],["Dallas",32.7767,-96.7970],
+    ["San Jose",37.3382,-121.8863],["Austin",30.2672,-97.7431],["Jacksonville",30.3322,-81.6557],
+    ["Fort Worth",32.7555,-97.3308],["Columbus",39.9612,-82.9988],["Charlotte",35.2271,-80.8431],
+    ["San Francisco",37.7749,-122.4194],["Indianapolis",39.7684,-86.1581],["Seattle",47.6062,-122.3321],
+    ["Denver",39.7392,-104.9903],["Washington",38.9072,-77.0369],["Boston",42.3601,-71.0589],
+    ["Nashville",36.1627,-86.7816],["Detroit",42.3314,-83.0458],["Portland",45.5051,-122.6750],
+    ["Memphis",35.1495,-90.0490],["Oklahoma City",35.4676,-97.5164],["Las Vegas",36.1699,-115.1398],
+    ["Louisville",38.2527,-85.7585],["Baltimore",39.2904,-76.6122],["Milwaukee",43.0389,-87.9065],
+    ["Albuquerque",35.0844,-106.6504],["Tucson",32.2226,-110.9747],["Fresno",36.7378,-119.7871],
+    ["Sacramento",38.5816,-121.4944],["Mesa",33.4152,-111.8315],["Atlanta",33.7490,-84.3880],
+    ["Kansas City",39.0997,-94.5786],["Colorado Springs",38.8339,-104.8214],["Miami",25.7617,-80.1918],
+    ["Raleigh",35.7796,-78.6382],["Omaha",41.2565,-95.9345],["Minneapolis",44.9778,-93.2650],
+    ["Tulsa",36.1540,-95.9928],["Tampa",27.9506,-82.4572],["New Orleans",29.9511,-90.0715],
+    ["Wichita",37.6872,-97.3301],["Cleveland",41.4993,-81.6944],["Bakersfield",35.3733,-119.0187],
+    ["Aurora",39.7294,-104.8319],["Anaheim",33.8366,-117.9143],["Honolulu",21.3069,-157.8583],
+    ["Riverside",33.9533,-117.3962],["Lexington",38.0406,-84.5037],["Pittsburgh",40.4406,-79.9959],
+    ["Stockton",37.9577,-121.2908],["Cincinnati",39.1031,-84.5120],["St. Louis",38.6270,-90.1994],
+    ["St. Paul",44.9537,-93.0900],["Anchorage",61.2181,-149.9003],["Buffalo",42.8864,-78.8784],
+    ["Newark",40.7357,-74.1724],["Lincoln",40.8136,-96.7026],["Orlando",28.5383,-81.3792],
+    ["Madison",43.0731,-89.4012],["Reno",39.5296,-119.8138],["Baton Rouge",30.4515,-91.1871],
+    ["Durham",35.9940,-78.8986],["Salt Lake City",40.7608,-111.8910],["Boise",43.6150,-116.2023],
+    ["Spokane",47.6588,-117.4260],["Richmond",37.5407,-77.4360],["Des Moines",41.5868,-93.6250],
+    ["Rochester",43.1566,-77.6088],["Providence",41.8240,-71.4128],["Knoxville",35.9606,-83.9207],
+    ["Chattanooga",35.0456,-85.3097],["Little Rock",34.7465,-92.2896],["Albany",42.6526,-73.7562],
+    ["Charleston",32.7765,-79.9311],["Savannah",32.0809,-81.0912],["Ann Arbor",42.2808,-83.7430],
+    ["Burlington",44.4759,-73.2121],["Portland Maine",43.6591,-70.2568],
+    ["London",51.5072,-0.1276],["Paris",48.8566,2.3522],["Berlin",52.5200,13.4050],
+    ["Madrid",40.4168,-3.7038],["Barcelona",41.3874,2.1686],["Rome",41.9028,12.4964],
+    ["Milan",45.4642,9.1900],["Amsterdam",52.3676,4.9041],["Vienna",48.2082,16.3738],
+    ["Zurich",47.3769,8.5417],["Geneva",46.2044,6.1432],["Dublin",53.3498,-6.2603],
+    ["Lisbon",38.7223,-9.1393],["Brussels",50.8503,4.3517],["Stockholm",59.3293,18.0686],
+    ["Copenhagen",55.6761,12.5683],["Oslo",59.9139,10.7522],["Helsinki",60.1699,24.9384],
+    ["Warsaw",52.2297,21.0122],["Prague",50.0755,14.4378],["Budapest",47.4979,19.0402],
+    ["Athens",37.9838,23.7275],["Istanbul",41.0082,28.9784],["Moscow",55.7558,37.6173],
+    ["Kyiv",50.4501,30.5234],["Munich",48.1351,11.5820],["Hamburg",53.5511,9.9937],
+    ["Edinburgh",55.9533,-3.1883],["Manchester",53.4808,-2.2426],
+    ["Toronto",43.6532,-79.3832],["Vancouver",49.2827,-123.1207],["Montreal",45.5019,-73.5674],
+    ["Ottawa",45.4215,-75.6972],["Calgary",51.0447,-114.0719],["Edmonton",53.5461,-113.4938],
+    ["Mexico City",19.4326,-99.1332],["Guadalajara",20.6597,-103.3496],["Monterrey",25.6866,-100.3161],
+    ["Bogota",4.7110,-74.0721],["Lima",-12.0464,-77.0428],["Santiago",-33.4489,-70.6693],
+    ["Buenos Aires",-34.6037,-58.3816],["Sao Paulo",-23.5505,-46.6333],["Rio de Janeiro",-22.9068,-43.1729],
+    ["Brasilia",-15.8267,-47.9218],["Quito",-0.1807,-78.4678],["Caracas",10.4806,-66.9036],
+    ["Sydney",-33.8688,151.2093],["Melbourne",-37.8136,144.9631],["Brisbane",-27.4698,153.0251],
+    ["Perth",-31.9505,115.8605],["Auckland",-36.8485,174.7633],["Wellington",-41.2865,174.7762],
+    ["Tokyo",35.6762,139.6503],["Osaka",34.6937,135.5023],["Kyoto",35.0116,135.7681],
+    ["Seoul",37.5665,126.9780],["Beijing",39.9042,116.4074],["Shanghai",31.2304,121.4737],
+    ["Hong Kong",22.3193,114.1694],["Shenzhen",22.5431,114.0579],["Taipei",25.0330,121.5654],
+    ["Singapore",1.3521,103.8198],["Bangkok",13.7563,100.5018],["Manila",14.5995,120.9842],
+    ["Jakarta",-6.2088,106.8456],["Kuala Lumpur",3.1390,101.6869],["Hanoi",21.0285,105.8542],
+    ["Ho Chi Minh City",10.8231,106.6297],["Mumbai",19.0760,72.8777],["Delhi",28.7041,77.1025],
+    ["Bangalore",12.9716,77.5946],["Chennai",13.0827,80.2707],["Hyderabad",17.3850,78.4867],
+    ["Kolkata",22.5726,88.3639],["Karachi",24.8607,67.0011],["Lahore",31.5497,74.3436],
+    ["Dhaka",23.8103,90.4125],["Dubai",25.2048,55.2708],["Abu Dhabi",24.4539,54.3773],
+    ["Doha",25.2854,51.5310],["Riyadh",24.7136,46.6753],["Tel Aviv",32.0853,34.7818],
+    ["Jerusalem",31.7683,35.2137],["Cairo",30.0444,31.2357],["Nairobi",-1.2921,36.8219],
+    ["Lagos",6.5244,3.3792],["Accra",5.6037,-0.1870],["Johannesburg",-26.2041,28.0473],
+    ["Cape Town",-33.9249,18.4241],["Casablanca",33.5731,-7.5898]
+  ];
+  const ALIASES = {
+    'nyc':'new york', 'ny':'new york', 'sf':'san francisco', 'la':'los angeles',
+    'dc':'washington', 'washington dc':'washington', "washington d.c.":'washington',
+    'philly':'philadelphia', 'vegas':'las vegas', 'chi':'chicago', 'ny city':'new york',
+    'bay area':'san francisco', 'socal':'los angeles', 'norcal':'san francisco',
+    'saint louis':'st. louis', 'saint paul':'st. paul'
+  };
+
+  function norm(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
+  function lookupCity(raw){
+    if (!raw) return null;
+    let key = norm(raw.split(',')[0]);
+    if (ALIASES[key]) key = ALIASES[key];
+    let hit = CITY_DB.find(c => norm(c[0]) === key);
+    if (!hit) hit = CITY_DB.find(c => norm(c[0]).startsWith(key) && key.length >= 3);
+    if (!hit) hit = CITY_DB.find(c => key.startsWith(norm(c[0])));
+    return hit ? { name: hit[0], lat: hit[1], lon: hit[2] } : null;
+  }
+
+  function haversineMiles(lat1,lon1,lat2,lon2){
+    const R = 3958.8, toRad = d => d*Math.PI/180;
+    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  function bearingDeg(lat1,lon1,lat2,lon2){
+    const toRad = d => d*Math.PI/180, toDeg = r => r*180/Math.PI;
+    const y = Math.sin(toRad(lon2-lon1)) * Math.cos(toRad(lat2));
+    const x = Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) - Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(toRad(lon2-lon1));
+    return (toDeg(Math.atan2(y,x)) + 360) % 360;
+  }
+  function niceNumber(x){
+    if (x <= 0) return 1;
+    const exp = Math.floor(Math.log10(x));
+    const base = x / Math.pow(10, exp);
+    let n;
+    if (base < 1.5) n = 1; else if (base < 3) n = 2; else if (base < 7) n = 5; else n = 10;
+    return n * Math.pow(10, exp);
+  }
+
+  let people = [];
+  let youLoc = null;
+  let mode = 'local';
+  let canEdit = true;
+  let dbDocRef = null;
+
+  function uid(){ return 'p-' + Math.random().toString(36).slice(2,10); }
+
+  function localSave(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({people, you: youLoc})); }catch(e){}
+  }
+
+  async function persist(){
+    if (mode === 'shared' && dbDocRef && canEdit){
+      try{
+        await dbDocRef.set({ people, you: youLoc });
+      }catch(e){
+        canEdit = false;
+        renderPermissionState();
+        alert("This map is read-only for you, so that change wasn't saved.");
+      }
+    } else if (mode === 'local'){
+      localSave();
+    }
+    renderAll();
+  }
+
+  function renderPermissionState(){
+    document.getElementById('add-section').style.display = canEdit ? '' : 'none';
+    document.getElementById('readonly-banner').style.display = canEdit ? 'none' : '';
+    document.getElementById('you-city').closest('.section').querySelectorAll('input,button').forEach(el => el.disabled = !canEdit);
+    document.getElementById('clear-btn').style.display = canEdit ? '' : 'none';
+    document.getElementById('example-btn').style.display = canEdit ? '' : 'none';
+  }
+
+  function setBadge(){
+    const b = document.getElementById('mode-badge');
+    if (mode === 'shared'){
+      b.textContent = canEdit ? 'Shared · you can edit' : 'Shared · view only';
+      b.classList.add('shared');
+    } else {
+      b.textContent = 'Saved to this browser only';
+      b.classList.remove('shared');
+    }
+  }
+
+  async function init(){
+    try{
+      if (window.claude && window.claude.use){
+        const db = await claude.use('db');
+        if (db){
+          mode = 'shared';
+          dbDocRef = db.doc('map/state');
+          try{
+            const user = await claude.use('user');
+            if (user){
+              const can = await user.can('data.write');
+              canEdit = (can !== false);
+            }
+          }catch(e){}
+          dbDocRef.onSnapshot(snap=>{
+            if (snap.exists){
+              const data = snap.data();
+              people = data.people || [];
+              youLoc = data.you || null;
+            } else {
+              people = []; youLoc = null;
+            }
+            setBadge(); renderPermissionState(); renderAll();
+          }, err=>{ console.error('db error', err); });
+          setBadge(); renderPermissionState();
+          return;
+        }
+      }
+    }catch(e){ console.error(e); }
+    mode = 'local'; canEdit = true;
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw){ const parsed = JSON.parse(raw); people = parsed.people || []; youLoc = parsed.you || null; }
+    }catch(e){}
+    setBadge(); renderPermissionState(); renderAll();
+  }
+
+  function renderYouCurrent(){
+    const box = document.getElementById('you-current');
+    const label = document.getElementById('you-current-label');
+    if (youLoc){ box.style.display = 'block'; label.textContent = youLoc.label; }
+    else { box.style.display = 'none'; }
+  }
+
+  document.getElementById('you-save').addEventListener('click', ()=>{
+    if (!canEdit) return;
+    const val = document.getElementById('you-city').value.trim();
+    if (!val) return;
+    const match = lookupCity(val);
+    if (!match){ flashError('you-city'); return; }
+    youLoc = { label: match.name, lat: match.lat, lon: match.lon };
+    document.getElementById('you-city').value = '';
+    persist();
+  });
+
+  document.getElementById('you-locate').addEventListener('click', ()=>{
+    if (!canEdit) return;
+    if (!navigator.geolocation){ alert('Location is not available in this browser.'); return; }
+    navigator.geolocation.getCurrentPosition(pos=>{
+      youLoc = { label:'Your current location', lat: pos.coords.latitude, lon: pos.coords.longitude };
+      persist();
+    }, err=>{ alert("Couldn't get your location: " + err.message); }, { timeout: 8000 });
+  });
+
+  function flashError(id){
+    const el = document.getElementById(id);
+    el.style.borderColor = 'var(--danger)';
+    el.placeholder = "Couldn't find that place — try a bigger nearby city";
+    setTimeout(()=>{ el.style.borderColor = ''; }, 1800);
+  }
+
+  const listEl = document.getElementById('people-list');
+  const countEl = document.getElementById('count');
+  const emptyNote = document.getElementById('empty-note');
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderList(){
+    listEl.innerHTML = '';
+    countEl.textContent = people.length;
+    emptyNote.style.display = people.length ? 'none' : 'block';
+    people.forEach(p=>{
+      const li = document.createElement('li');
+      li.className = 'person-row';
+      const cityBit = p.lat == null
+        ? `<span class="pcity warn">${escapeHtml(p.city)} · location not found</span>`
+        : `<span class="pcity">${escapeHtml(p.city)} · ${TIER_LABEL[p.tier]}</span>`;
+      li.innerHTML = `
+        <span class="dot" style="background:${TIER_COLOR[p.tier]}"></span>
+        <span class="person-meta"><div class="pname">${escapeHtml(p.name)}</div>${cityBit}</span>
+        ${canEdit ? `<button class="remove" data-id="${p.id}" title="Remove">×</button>` : ''}
+      `;
+      listEl.appendChild(li);
+    });
+    listEl.querySelectorAll('.remove').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        people = people.filter(p=>p.id !== btn.dataset.id);
+        persist();
+      });
+    });
+  }
+
+  document.getElementById('add-btn').addEventListener('click', ()=>{
+    if (!canEdit) return;
+    const name = document.getElementById('f-name').value.trim();
+    const cityRaw = document.getElementById('f-city').value.trim();
+    const tier = parseInt(document.getElementById('f-tier').value, 10);
+    const note = document.getElementById('f-note').value.trim();
+    if (!name || !cityRaw){ flashError(!name ? 'f-name' : 'f-city'); return; }
+    const match = lookupCity(cityRaw);
+    people.push({
+      id: uid(), name, city: match ? match.name : cityRaw, tier, note,
+      lat: match ? match.lat : null, lon: match ? match.lon : null
+    });
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-city').value = '';
+    document.getElementById('f-note').value = '';
+    persist();
+  });
+
+  document.getElementById('clear-btn').addEventListener('click', ()=>{
+    if (!canEdit || !people.length) return;
+    if (confirm('Remove everyone from the map? This cannot be undone.')){
+      people = [];
+      persist();
+    }
+  });
+
+  function mk(name, cityName, tier, note){
+    const c = lookupCity(cityName);
+    return { id: uid(), name, city: c.name, tier, note, lat: c.lat, lon: c.lon };
+  }
+
+  function loadExample(){
+    if (!canEdit) return;
+    youLoc = { label:'San Francisco', lat:37.7749, lon:-122.4194 };
+    people = [
+      mk('Maya','San Francisco',1,'partner'), mk('Jon','San Francisco',2,'roommate'),
+      mk('Alicia','San Francisco',3,'coworker'), mk('Dad','Chicago',0,''),
+      mk('Mom','Chicago',0,''), mk('Sister','Chicago',0,''), mk('Sam','Chicago',2,'high school'),
+      mk('Priya','Austin',2,'college roommate'), mk('Devon','Austin',3,'college friend'),
+      mk('Theo','London',3,'former coworker'), mk('Nina','London',4,'friend of a friend'),
+      mk('Carlos','Mexico City',2,'study abroad'), mk('Ben','Seattle',3,'grad school'),
+      mk('Uncle Ray','Miami',0,''), mk('Grace','Tokyo',4,'')
+    ];
+    persist();
+  }
+  document.getElementById('example-btn').addEventListener('click', loadExample);
+
+  const svg = d3.select('#canvas');
+  const stage = document.querySelector('.stage');
+  const emptyState = document.getElementById('empty-state');
+  let g = svg.append('g');
+  const zoom = d3.zoom().scaleExtent([0.25, 4]).on('zoom', e => g.attr('transform', e.transform));
+  svg.call(zoom);
+  let simulation = null;
+
+  function renderAll(){
+    renderYouCurrent();
+    renderList();
+    renderGraph();
+  }
+
+  function renderGraph(){
+    g.selectAll('*').remove();
+
+    if (!youLoc){
+      emptyState.style.display = 'flex';
+      emptyState.querySelector('h2').textContent = 'Set your location to begin';
+      emptyState.querySelector('p').textContent = 'Everyone else is placed at their real distance and direction from you. Add your city on the left, then start adding people.';
+      if (simulation) simulation.stop();
+      return;
+    }
+    if (!people.length){
+      emptyState.style.display = 'flex';
+      emptyState.querySelector('h2').textContent = 'Your map is empty';
+      emptyState.querySelector('p').textContent = canEdit ? 'Add a few people on the left, or load example data.' : "The owner hasn't added anyone yet.";
+      if (simulation) simulation.stop();
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    const width = stage.clientWidth, height = stage.clientHeight;
+    const maxRadiusPx = Math.min(width, height) / 2 - 70;
+
+    const placed = people.filter(p => p.lat != null);
+    const unplaced = people.filter(p => p.lat == null);
+
+    const distances = placed.map(p => haversineMiles(youLoc.lat, youLoc.lon, p.lat, p.lon));
+    const maxDist = Math.max(50, ...distances, 1);
+    const scale = d3.scaleSqrt().domain([0, maxDist]).range([0, maxRadiusPx]);
+
+    const ringVals = [0.25, 0.5, 0.75, 1].map(f => niceNumber(maxDist * f));
+    const ringGroup = g.append('g');
+    ringVals.forEach(v => {
+      ringGroup.append('circle')
+        .attr('r', scale(v)).attr('fill','none').attr('stroke','var(--line)')
+        .attr('stroke-dasharray','1,7').attr('opacity',0.9);
+      ringGroup.append('text')
+        .attr('class','ring-label')
+        .attr('x', 4).attr('y', -scale(v) - 4)
+        .text(Math.round(v).toLocaleString() + ' mi');
+    });
+
+    const compassR = maxRadiusPx + 30;
+    [['N',0],['E',90],['S',180],['W',270]].forEach(([label, deg])=>{
+      const rad = deg * Math.PI/180;
+      ringGroup.append('text')
+        .attr('class','compass-label')
+        .attr('x', compassR * Math.sin(rad))
+        .attr('y', -compassR * Math.cos(rad) + 4)
+        .attr('text-anchor','middle')
+        .text(label);
+    });
+
+    const nodes = [
+      { id:'__you__', name:'You', isYou:true, tier:0, x:0, y:0, fx:0, fy:0, tx:0, ty:0 },
+      ...placed.map(p=>{
+        const dist = haversineMiles(youLoc.lat, youLoc.lon, p.lat, p.lon);
+        const brg = bearingDeg(youLoc.lat, youLoc.lon, p.lat, p.lon);
+        const r = scale(dist);
+        const rad = brg * Math.PI/180;
+        const tx = r * Math.sin(rad), ty = -r * Math.cos(rad);
+        return { ...p, isYou:false, x:tx, y:ty, tx, ty, dist };
+      })
+    ];
+
+    const linkGroup = g.append('g');
+    const linkSel = linkGroup.selectAll('line')
+      .data(placed).join('line')
+      .attr('stroke', p => TIER_COLOR[p.tier]).attr('stroke-opacity', 0.22).attr('stroke-width', 1);
+
+    const nodeGroup = g.append('g');
+    const nodeSel = nodeGroup.selectAll('g.node')
+      .data(nodes, d=>d.id).join('g').attr('class','node')
+      .call(d3.drag()
+        .on('start', (event,d)=>{ if(!event.active) simulation.alphaTarget(0.2).restart(); d.fx=d.x; d.fy=d.y; })
+        .on('drag', (event,d)=>{ d.fx=event.x; d.fy=event.y; })
+        .on('end', (event,d)=>{ if(!event.active) simulation.alphaTarget(0); if(!d.isYou){ d.fx=null; d.fy=null; } })
+      );
+
+    nodeSel.append('circle')
+      .attr('r', d => d.isYou ? 12 : TIER_NODE_R[d.tier])
+      .attr('fill', d => d.isYou ? 'var(--ink)' : TIER_COLOR[d.tier])
+      .attr('stroke', 'var(--bg)')
+      .attr('stroke-width', d => d.isYou ? 2 : 1.5);
+
+    nodeSel.append('title')
+      .text(d => d.isYou ? `You — ${youLoc.label}` : `${d.name} — ${d.city} — ${TIER_LABEL[d.tier]} — ${Math.round(d.dist)} mi${d.note ? ' — ' + d.note : ''}`);
+
+    nodeSel.append('text')
+      .attr('class', d => 'node-label' + (d.isYou ? ' you' : ''))
+      .attr('x', d => d.isYou ? 0 : 10)
+      .attr('y', d => d.isYou ? -18 : 3.5)
+      .attr('text-anchor', d => d.isYou ? 'middle' : 'start')
+      .text(d => d.isYou ? 'You' : d.name);
+
+    simulation = d3.forceSimulation(nodes)
+      .force('x', d3.forceX(d=>d.tx).strength(d=>d.isYou?1:0.85))
+      .force('y', d3.forceY(d=>d.ty).strength(d=>d.isYou?1:0.85))
+      .force('collide', d3.forceCollide().radius(d => (d.isYou?18:TIER_NODE_R[d.tier]+16)).strength(0.9))
+      .on('tick', ticked);
+
+    function ticked(){
+      linkSel
+        .attr('x1', 0).attr('y1', 0)
+        .attr('x2', p => { const n = nodes.find(n=>n.id===p.id); return n ? n.x : 0; })
+        .attr('y2', p => { const n = nodes.find(n=>n.id===p.id); return n ? n.y : 0; });
+      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+    }
+
+    if (unplaced.length){
+      g.append('text')
+        .attr('class','ring-label')
+        .attr('x', -maxRadiusPx).attr('y', maxRadiusPx + 50)
+        .text(unplaced.length + ' ' + (unplaced.length===1?'person':'people') + " couldn't be placed — location not recognized");
+    }
+
+    const initialTransform = d3.zoomIdentity.translate(width/2, height/2).scale(0.85);
+    svg.call(zoom.transform, initialTransform);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
