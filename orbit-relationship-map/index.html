@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <title>Orbit</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
   :root{
@@ -15,8 +12,8 @@
     --tier-1: #C9971F; --tier-2: #1C7A4B; --tier-3: #2452A6; --tier-4: #6E3FA3;
     --tier-family: #A32638;
     --danger: #BD6A57;
-    --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
-    --sans: 'IBM Plex Sans', -apple-system, Helvetica, Arial, sans-serif;
+    --sans: Arial, Helvetica, 'Helvetica Neue', sans-serif;
+    --serif: var(--sans);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
