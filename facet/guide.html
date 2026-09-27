@@ -41,7 +41,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* shell */
 .shell { max-width: 1180px; margin: 0 auto; padding-inline: 24px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 56px; }
-.steps { position: sticky; top: 72px; align-self: start; padding-block: 40px; list-style: none; margin: 0; display: grid; }
+.shell > nav { position: sticky; top: 72px; align-self: start; padding-block: 40px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; }
 .steps button { width: 100%; background: none; border: 0; text-align: left; cursor: pointer; display: grid; grid-template-columns: 30px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--rule); color: var(--muted); }
 .steps button .n { font: italic 400 16px var(--display); }
 .steps button .l { font-size: 15px; }
@@ -49,7 +50,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .steps button.done .n::after { content: " ✓"; font: 12px var(--sans); color: var(--keep); }
 .steps button[aria-current="step"] { color: var(--ink); font-weight: 600; }
 .steps button[aria-current="step"] .n { color: var(--accent); }
-.save-note { font-size: 13px; color: var(--muted); margin-top: 18px; }
+.savebox { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--rule); display: grid; gap: 8px; font-size: 14px; }
+.savebox .saved { color: var(--muted); }
+.savebox .saved b { color: var(--keep); font-weight: 600; }
+.savebox .acts { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.savebox .link { font-size: 11px; }
+.io-msg { font-size: 14px; }
+.io-msg.bad { color: var(--go); }
+.copybox { width: 100%; min-height: 180px; font: 14px/1.5 var(--sans); }
 
 main { padding-block: 48px 40px; min-width: 0; }
 .step-head { display: grid; gap: 14px; max-width: 760px; margin-bottom: 40px; }
@@ -107,7 +115,7 @@ input.vname { font: italic 400 28px/1.2 var(--display); border-bottom-color: var
 .week div { display: flex; align-items: center; padding-inline: 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .week div:nth-child(1) { background: var(--ink); color: var(--paper); }
 .week div:nth-child(2) { background: var(--accent); color: var(--on-accent); }
-.week div:nth-child(3) { border: 1px solid var(--ink); }
+.week div:nth-child(3) { background: #A9B2F0; }
 
 /* buttons */
 .btn { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 12px 22px; font: 600 13px var(--sans); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; text-decoration: none; border-radius: 0; }
@@ -242,7 +250,7 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 960px) {
   .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .steps { display: none; }
+  .shell > nav { display: none; }
 }
 @media (max-width: 880px) {
   .budget, .twocol, .pgrid { grid-template-columns: 1fr; gap: 32px; }
@@ -298,6 +306,11 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 <div class="shell">
   <nav aria-label="Guide steps">
     <ol class="steps" id="steps"></ol>
+    <div class="savebox">
+      <span class="saved" data-saved>Saves automatically in this browser.</span>
+      <span class="acts"><button class="link" type="button" data-act="export">Save a copy</button><button class="link" type="button" data-act="import">Restore a copy</button></span>
+      <span class="io-msg" data-io aria-live="polite"></span>
+    </div>
   </nav>
 
   <main>
@@ -603,8 +616,15 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
         <p class="dek">Everything you worked out, on one page. Come back to it each season, because your style will change and that's the point.</p>
       </div>
       <div class="profile" id="profile"></div>
+      <div class="tip" style="margin-top:28px">
+        <p class="kicker">Coming back</p>
+        <p>This workbook remembers you on this device and browser. Open it again any time and you'll pick up where you left off. To switch devices or keep a backup, use <b>Save a copy</b> and then <b>Restore a copy</b> on the other device.</p>
+      </div>
+      <textarea class="copybox" id="copy-fallback" hidden aria-label="Your profile as text"></textarea>
       <div class="stepnav" style="border:0;margin-top:28px;padding-top:0">
         <a class="btn" href="shop.html">Open The Edit →</a>
+        <button class="btn ghost" type="button" id="copy-profile">Copy my profile</button>
+        <button class="btn ghost" type="button" data-act="export">Save a copy</button>
         <span class="confirm" id="reset-wrap"><button class="link" type="button" id="reset">Start over</button></span>
       </div>
     </section>
@@ -613,7 +633,12 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
       <button class="btn ghost" type="button" id="prev">← Back</button>
       <button class="btn next" type="button" id="next">Next →</button>
     </div>
-    <p class="save-note">Your answers save automatically in this browser.</p>
+    <div class="savebox">
+      <span class="saved" data-saved>Saves automatically in this browser.</span>
+      <span class="acts"><button class="link" type="button" data-act="export">Save a copy</button><button class="link" type="button" data-act="import">Restore a copy</button></span>
+      <span class="io-msg" data-io aria-live="polite"></span>
+    </div>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
   </main>
 </div>
 
@@ -660,7 +685,86 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
   if (!S || !Array.isArray(S.versions)) S = blank();
   S = Object.assign(blank(), S);
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable */ } }
+  let storageOK = true;
+  function save() {
+    S.savedAt = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; } catch (e) { storageOK = false; }
+    showSaved();
+  }
+  function showSaved() {
+    const txt = !storageOK
+      ? 'This browser isn\'t saving your answers. Use Save a copy before you leave.'
+      : S.savedAt ? `<b>✓ Saved</b> in this browser at ${new Date(S.savedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Saves automatically in this browser.';
+    document.querySelectorAll('[data-saved]').forEach(el => el.innerHTML = txt);
+  }
+
+  /* ---------- save a copy / restore ---------- */
+  const today = () => new Date().toISOString().slice(0, 10);
+  function ioMsg(text, bad) { document.querySelectorAll('[data-io]').forEach(el => { el.textContent = text; el.classList.toggle('bad', !!bad); }); }
+  async function exportCopy() {
+    let edit = null;
+    try { edit = JSON.parse(localStorage.getItem('facet-edit-v1')); } catch (e) { edit = null; }
+    const data = JSON.stringify({ app: 'facet', version: 1, savedAt: new Date().toISOString(), workbook: S, edit }, null, 2);
+    const filename = `facet-workbook-${today()}.json`;
+    let dl = null;
+    if (window.claude && typeof window.claude.use === 'function') { try { dl = await window.claude.use('downloads'); } catch (e) { dl = null; } }
+    if (dl) {
+      try { await dl.save({ filename, data }); ioMsg('Saved. Keep the file somewhere you can find it.'); }
+      catch (e) { ioMsg(e && e.code === 'declined' ? 'Not saved.' : 'Saving a file isn\'t available here. Your answers are still saved in this browser.', e && e.code !== 'declined'); }
+      return;
+    }
+    try {
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      ioMsg(`Downloaded ${filename}. Keep it somewhere you can find it.`);
+    } catch (e) { ioMsg('Saving a file isn\'t available here. Your answers are still saved in this browser.', true); }
+  }
+  function importCopy(file) {
+    const r = new FileReader();
+    r.onload = () => {
+      let obj = null;
+      try { obj = JSON.parse(r.result); } catch (e) { obj = null; }
+      if (!obj || obj.app !== 'facet' || !obj.workbook || !Array.isArray(obj.workbook.versions)) {
+        ioMsg('That file isn\'t a Facet workbook. Choose the .json file you saved from Facet.', true); return;
+      }
+      S = Object.assign(blank(), obj.workbook, { example: false });
+      if (obj.edit) { try { localStorage.setItem('facet-edit-v1', JSON.stringify(obj.edit)); } catch (e) { /* ignore */ } }
+      save(); renderAll(); go(S.step || 1);
+      ioMsg(`Restored your workbook from ${obj.savedAt ? new Date(obj.savedAt).toLocaleDateString() : 'your file'}.`);
+    };
+    r.onerror = () => ioMsg('That file couldn\'t be read. Try choosing it again.', true);
+    r.readAsText(file);
+  }
+  document.getElementById('import-file').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) importCopy(f);
+    e.target.value = '';
+  });
+
+  /* ---------- profile as text ---------- */
+  function profileText() {
+    const t = timeShares();
+    const lines = ['MY FACET STYLE PROFILE', ''];
+    if (S.statement.trim()) lines.push(`"${S.statement.trim()}"`, '');
+    if (S.core.trim()) lines.push('My core: ' + S.core.trim(), '');
+    S.versions.forEach((v, i) => {
+      lines.push(`Facet ${ROMAN[i]}: ${vName(v.id)} (${Math.round(t[v.id] * 100)}% of my week)`);
+      if (v.words) lines.push('  ' + v.words);
+      if (v.piece) lines.push('  Signature: ' + v.piece);
+      if (v.feel) lines.push('  Wants to feel ' + v.feel.toLowerCase());
+    });
+    lines.push('');
+    if (S.common.trim()) lines.push('Feel-good formula: ' + S.common.trim());
+    const u = underserved();
+    if (S.items.length && u.length) lines.push('Shop for first: ' + vName(u[0]));
+    const strong = S.wish.filter(w => w.name && wishScore(w) === 3).map(w => w.name);
+    if (strong.length) lines.push('Next pieces: ' + strong.join(', '));
+    lines.push(`Budget: ${money(+S.budget.amount || 0)} per ${S.budget.period}`);
+    if (S.reflection.trim()) lines.push('What surprised me: ' + S.reflection.trim());
+    return lines.join('\n');
+  }
 
   const vName = id => {
     if (id === 'none') return 'Someone else';
@@ -1014,6 +1118,15 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     if (shop) { try { localStorage.setItem('facet-edit-start', shop.dataset.shop); } catch (err) { /* ignore */ } return; }
     const t = e.target.closest('button');
     if (!t) return;
+    if (t.dataset.act === 'export') { exportCopy(); return; }
+    if (t.dataset.act === 'import') { document.getElementById('import-file').click(); return; }
+    if (t.id === 'copy-profile') {
+      const text = profileText(), box = document.getElementById('copy-fallback');
+      const fallback = () => { box.hidden = false; box.value = text; box.focus(); box.select(); t.textContent = 'Select and copy below'; };
+      try { navigator.clipboard.writeText(text).then(() => { t.textContent = 'Copied ✓'; setTimeout(() => t.textContent = 'Copy my profile', 2000); }, fallback); }
+      catch (e) { fallback(); }
+      return;
+    }
     if (t.dataset.go) { go(+t.dataset.go); }
     else if (t.id === 'next') go(S.step + 1);
     else if (t.id === 'prev') go(S.step - 1);
@@ -1096,6 +1209,7 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
   });
 
   renderAll();
+  showSaved();
   const m = /^#step-(\d)$/.exec(location.hash);
   go(m ? +m[1] : (S.step || 1), false);
 })();

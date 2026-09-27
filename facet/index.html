@@ -51,15 +51,22 @@ button { font: inherit; color: inherit; }
 .resume a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .resume a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .confirm { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; font-size: 15px; }
+.back-note { margin-top: 18px; font-size: 15px; color: var(--muted); max-width: 52ch; }
+.back-note .link { font-size: 11px; color: var(--ink); }
+.io-msg { font-size: 14px; margin-top: 8px; }
+.io-msg.bad { color: #B3261E; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 22px; }
 
-.gem-wrap { display: grid; gap: 22px; align-content: start; }
-.gem { width: 100%; max-width: 420px; justify-self: center; }
-.gem polyline, .gem line { stroke: var(--ink); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
-.gem .f { fill: var(--accent); opacity: .12; stroke: none; }
-.gem text { font: italic 400 22px var(--display); fill: var(--ink); text-anchor: middle; }
+.pie-wrap { display: grid; gap: 22px; align-content: start; }
+.pie-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.pie { width: 100%; max-width: 340px; justify-self: center; overflow: visible; }
+.pie path, .pie circle { stroke: var(--paper); stroke-width: 3; }
+.pie path:hover, .pie circle:hover { opacity: .88; }
+.pie text { font: italic 400 24px var(--display); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.pie text.pct { font: 600 13px var(--sans); font-style: normal; letter-spacing: .04em; }
 .facets { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.facets li { display: grid; grid-template-columns: 38px 1fr; gap: 10px; align-items: baseline; }
+.facets li { display: grid; grid-template-columns: 14px 32px 1fr; gap: 10px; align-items: baseline; }
+.facets .sw { width: 12px; height: 12px; display: inline-block; }
 .facets .rn { font: italic 400 22px var(--display); color: var(--accent); }
 .facets b { font-family: var(--display); font-weight: 500; font-size: 20px; }
 .facets span.w { display: block; color: var(--muted); font-size: 15px; }
@@ -140,19 +147,13 @@ footer .muted { font-size: 14px; }
           <button class="link" type="button" id="sample-no">Keep mine</button>
         </div>
         <div class="meta small-caps"><span>8 steps</span><span>About 90 minutes, with a closet clean-out</span><span>Saves as you go</span></div>
+        <p class="back-note">Take it in more than one sitting. Your answers stay in this browser, so you can close the page and pick up where you left off. On a new device? <button class="link" type="button" id="restore">Restore a saved copy</button></p>
+        <p class="io-msg" id="io-msg" aria-live="polite"></p>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
       </div>
-      <div class="gem-wrap">
-        <svg class="gem" viewBox="0 0 400 310" role="img" aria-label="A cut gem with three highlighted facets, one for each version of you">
-          <polygon class="f" points="40,110 120,110 200,300"/>
-          <polygon class="f" points="160,110 240,110 200,300"/>
-          <polygon class="f" points="280,110 360,110 200,300"/>
-          <polyline points="130,50 270,50 360,110 200,300 40,110 130,50"/>
-          <line x1="40" y1="110" x2="360" y2="110"/>
-          <polyline points="40,110 130,50 120,110 200,50 280,110 270,50 360,110"/>
-          <line x1="120" y1="110" x2="200" y2="300"/><line x1="160" y1="110" x2="200" y2="300"/>
-          <line x1="240" y1="110" x2="200" y2="300"/><line x1="280" y1="110" x2="200" y2="300"/>
-          <text x="118" y="158">I</text><text x="200" y="158">II</text><text x="282" y="158">III</text>
-        </svg>
+      <div class="pie-wrap">
+        <div class="pie-head"><span class="small-caps">Your week, by facet</span></div>
+        <svg class="pie" id="pie" viewBox="-170 -170 340 340" role="img" aria-label="Pie chart of how your week splits across your three facets"></svg>
         <ul class="facets" id="facets"></ul>
         <p class="facets-note" id="facets-note"></p>
       </div>
@@ -267,8 +268,33 @@ footer .muted { font-size: 14px; }
   // Cover facets: the reader's own if they have them, otherwise the sample.
   const shown = hasOwn || (S && S.example) ? S : sample();
   const tot = shown.versions.reduce((a, v) => a + (+v.time || 0), 0) || 1;
+  const COLORS = ['#0D0D0F', '#2536C9', '#A9B2F0'];
+  const INK_ON = ['#FFFFFF', '#FFFFFF', '#0D0D0F'];
+  const facetName = (v, i) => (v.name || '').trim() || 'Facet ' + ROMAN[i];
+  const share = v => (+v.time || 0) / tot;
   $('facets').innerHTML = shown.versions.map((v, i) => `
-    <li><span class="rn">${ROMAN[i]}</span><span><b>${esc((v.name || '').trim() || 'Facet ' + ROMAN[i])}</b><span class="w">${esc(v.words || 'Three words for their style')} · ${Math.round((+v.time || 0) / tot * 100)}% of the week</span></span></li>`).join('');
+    <li><i class="sw" style="background:${COLORS[i]}"></i><span class="rn">${ROMAN[i]}</span><span><b>${esc(facetName(v, i))}</b><span class="w">${esc(v.words || 'Three words for their style')} · ${Math.round(share(v) * 100)}% of the week</span></span></li>`).join('');
+
+  // Pie chart: one slice per facet, sized by share of the week, starting at 12 o'clock.
+  const R = 160;
+  let a0 = -Math.PI / 2, svg = '';
+  shown.versions.forEach((v, i) => {
+    const f = share(v);
+    if (f <= 0) return;
+    const title = `<title>${esc(facetName(v, i))}: ${Math.round(f * 100)}% of the week</title>`;
+    const a1 = a0 + f * 2 * Math.PI, mid = (a0 + a1) / 2;
+    if (f >= 0.999) svg += `<circle r="${R}" fill="${COLORS[i]}">${title}</circle>`;
+    else {
+      const p = a => `${(R * Math.cos(a)).toFixed(2)} ${(R * Math.sin(a)).toFixed(2)}`;
+      svg += `<path d="M0 0 L${p(a0)} A${R} ${R} 0 ${f > 0.5 ? 1 : 0} 1 ${p(a1)} Z" fill="${COLORS[i]}">${title}</path>`;
+    }
+    if (f >= 0.06) {
+      const lr = f >= 0.999 ? 0 : R * 0.6, x = lr * Math.cos(mid), y = lr * Math.sin(mid);
+      svg += `<text x="${x.toFixed(1)}" y="${(y - 10).toFixed(1)}" fill="${INK_ON[i]}">${ROMAN[i]}</text><text class="pct" x="${x.toFixed(1)}" y="${(y + 14).toFixed(1)}" fill="${INK_ON[i]}">${Math.round(f * 100)}%</text>`;
+    }
+    a0 = a1;
+  });
+  $('pie').innerHTML = svg;
   $('facets-note').textContent = hasOwn ? 'Your three facets.' : 'An example. You\'ll name your own in step 2.';
 
   if (S && S.step && (hasOwn || S.example)) {
@@ -289,6 +315,27 @@ footer .muted { font-size: 14px; }
   $('sample').addEventListener('click', () => { if (hasOwn) $('confirm').hidden = false; else loadSample(); });
   $('sample-yes').addEventListener('click', loadSample);
   $('sample-no').addEventListener('click', () => { $('confirm').hidden = true; });
+
+  $('restore').addEventListener('click', () => $('import-file').click());
+  $('import-file').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      let obj = null;
+      try { obj = JSON.parse(r.result); } catch (err) { obj = null; }
+      if (!obj || obj.app !== 'facet' || !obj.workbook || !Array.isArray(obj.workbook.versions)) {
+        $('io-msg').textContent = 'That file isn\'t a Facet workbook. Choose the .json file you saved from Facet.';
+        $('io-msg').classList.add('bad'); return;
+      }
+      obj.workbook.example = false;
+      store(obj.workbook);
+      if (obj.edit) { try { localStorage.setItem('facet-edit-v1', JSON.stringify(obj.edit)); } catch (err) { /* ignore */ } }
+      location.href = 'guide.html#step-' + (obj.workbook.step || 1);
+    };
+    r.readAsText(f);
+  });
 })();
 </script>
 </body>
