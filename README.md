@@ -82,10 +82,13 @@ pytest
 Tests mock all Claude API calls, so they run offline and don't require
 `ANTHROPIC_API_KEY`.
 
-## Style, Plural
+## Facet
 
-`style-plural/index.html` is a standalone interactive style workbook: define
-what style means to you, name three versions of yourself, shop your closet
-with four questions, decide what to sell or donate, see which version of you
-you've been shopping for, plan purposeful additions, and set a budget. Open
-the file in a browser; answers are saved in that browser's local storage.
+`facet/` is a standalone interactive style workbook styled like a fashion
+magazine. `facet/index.html` walks through seven chapters: what style means,
+a pop quiz naming three facets of yourself, shopping your own closet, letting
+go (with Depop, Poshmark and ThredUp as places to sell), who you've been
+shopping for, adding with intent, and a budget. `facet/shop.html` ("The
+Edit") gives each piece you want to add its own conversation and ends with
+searches at Zara, Paloma Wool and ASOS. Open the files in a browser; answers
+are saved in that browser's local storage.
