@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Style, Plural</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F2F1F5;
+  --surface: #FFFFFF;
+  --surface-2: #E9E7EE;
+  --ink: #1F1B2B;
+  --muted: #5F596D;
+  --line: #D8D4E0;
+  --accent: #8C2F5E;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #F4E4ED;
+  --life: #3558A8;
+  --closet: #B23572;
+  --keep: #2C7548;
+  --maybe: #8E6212;
+  --go: #A13A2D;
+  --string: #B7A98E;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15131B; --surface: #1F1C27; --surface-2: #2A2634; --ink: #EDE8F3; --muted: #A79FB5;
+    --line: #373143; --accent: #E27BAE; --accent-ink: #1B0F16; --accent-soft: #3A2231;
+    --life: #6A8FE8; --closet: #D9508F; --keep: #6FC28E; --maybe: #E0B155; --go: #EE8A7C; --string: #6E6556;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15131B; --surface: #1F1C27; --surface-2: #2A2634; --ink: #EDE8F3; --muted: #A79FB5;
+  --line: #373143; --accent: #E27BAE; --accent-ink: #1B0F16; --accent-soft: #3A2231;
+  --life: #6A8FE8; --closet: #D9508F; --keep: #6FC28E; --maybe: #E0B155; --go: #EE8A7C; --string: #6E6556;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; text-wrap: balance; margin: 0; line-height: 1.1; }
+p { margin: 0; }
+.prose { max-width: 62ch; display: grid; gap: 14px; }
+.label { font: 500 12px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* nav */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+}
+.nav-inner { display: flex; gap: 6px; overflow-x: auto; padding-block: 10px; scrollbar-width: none; }
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav a {
+  flex: none; text-decoration: none; color: var(--muted); font-size: 14px;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap;
+}
+.nav a b { font: 500 12px var(--mono); margin-right: 6px; color: var(--accent); }
+.nav a:hover, .nav a.on { color: var(--ink); border-color: var(--line); background: var(--surface); }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; padding-block: 56px 40px; }
+.hero h1 { font-size: clamp(56px, 10vw, 116px); font-style: italic; font-weight: 400; letter-spacing: -.02em; }
+.hero h1 span { font-style: normal; font-weight: 700; }
+.hero .lede { font-size: 20px; line-height: 1.5; margin-top: 22px; max-width: 34ch; }
+.hero .sub { color: var(--muted); margin-top: 14px; max-width: 46ch; }
+.rack { position: relative; height: 330px; }
+.rack::before { content: ""; position: absolute; left: 0; right: 0; top: 18px; height: 4px; border-radius: 2px; background: var(--line); }
+.htag {
+  position: absolute; top: 18px; width: 190px; transform-origin: 50% 0;
+  padding-top: 64px;
+}
+.htag::before { content: ""; position: absolute; left: 50%; top: 0; width: 1.5px; height: 66px; background: var(--string); }
+.htag .card {
+  position: relative; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px 14px 6px 6px; padding: 30px 18px 18px;
+  box-shadow: 0 10px 24px -14px rgb(20 10 30 / .35);
+}
+.htag .card::before {
+  content: ""; position: absolute; left: 50%; top: 10px; width: 12px; height: 12px; margin-left: -6px;
+  border-radius: 50%; background: var(--bg); border: 1px solid var(--line);
+}
+.htag h3 { font-size: 24px; font-style: italic; }
+.htag .words { font-size: 14px; color: var(--muted); margin-top: 6px; }
+.htag .pct { font: 500 12px var(--mono); color: var(--accent); margin-top: 12px; display: block; }
+.htag:nth-child(1) { left: 2%; transform: rotate(-5deg); }
+.htag:nth-child(2) { left: 34%; transform: rotate(3deg); top: 30px; }
+.htag:nth-child(3) { left: 64%; transform: rotate(-2deg); top: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  .htag { animation: sway 5s ease-in-out infinite alternate; }
+  .htag:nth-child(2) { animation-delay: -1.6s; }
+  .htag:nth-child(3) { animation-delay: -3.1s; }
+  @keyframes sway { to { rotate: 2deg; } }
+}
+
+.banner {
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border: 1px dashed var(--accent); border-radius: 10px; background: var(--accent-soft);
+  margin-bottom: 24px;
+}
+
+/* sections */
+section.step { padding-block: 64px; border-top: 1px solid var(--line); scroll-margin-top: 56px; }
+.step-head { display: grid; grid-template-columns: auto 1fr; gap: 8px 22px; align-items: start; margin-bottom: 28px; }
+.num { font: italic 400 64px/0.9 var(--display); color: var(--accent); min-width: 1.1em; }
+.step-head h2 { font-size: clamp(32px, 5vw, 48px); }
+.step-head .kicker { grid-column: 2; }
+.step-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.panel h3 { font-size: 22px; margin-bottom: 6px; }
+.hint { color: var(--muted); font-size: 14px; }
+
+.principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.principles div { border-top: 2px solid var(--ink); padding-top: 12px; }
+.principles h3 { font-size: 26px; font-style: italic; margin-bottom: 6px; }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 13px; font-size: 14px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.static { cursor: default; }
+.thennow { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.thennow > div { display: grid; gap: 10px; align-content: start; }
+.shift { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 4px; }
+.shift div { display: grid; gap: 6px; align-content: start; }
+.shift p { font-family: var(--display); font-size: 20px; font-style: italic; }
+
+/* version tags */
+.versions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.vtag {
+  position: relative; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px 18px 8px 8px; padding: 40px 20px 20px; display: grid; gap: 12px;
+}
+.vtag::before {
+  content: ""; position: absolute; left: 50%; top: 14px; width: 14px; height: 14px; margin-left: -7px;
+  border-radius: 50%; background: var(--bg); border: 1px solid var(--line);
+}
+.vtag .label { text-align: center; }
+.field { display: grid; gap: 4px; }
+.field > span { font-size: 13px; color: var(--muted); }
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+}
+textarea { resize: vertical; min-height: 84px; }
+input.vname { font: italic 500 24px/1.2 var(--display); background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 4px 0; text-align: center; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.range-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.range-row b { font: 500 13px var(--mono); color: var(--ink); }
+.week { display: flex; height: 38px; border-radius: 8px; overflow: hidden; gap: 2px; background: var(--bg); }
+.week div { display: flex; align-items: center; padding-inline: 10px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--accent-ink); min-width: 0; }
+.week div:nth-child(1) { background: var(--accent); }
+.week div:nth-child(2) { background: color-mix(in srgb, var(--accent) 70%, var(--bg)); }
+.week div:nth-child(3) { background: color-mix(in srgb, var(--accent) 45%, var(--bg)); color: var(--ink); }
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; padding: 9px 16px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; font-weight: 500;
+}
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.small { padding: 5px 11px; font-size: 14px; }
+.x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 6px; }
+.x:hover { color: var(--go); background: var(--surface-2); }
+
+/* closet */
+.care { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.care div { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--surface); display: grid; gap: 6px; align-content: start; }
+.care svg { width: 28px; height: 28px; stroke: var(--ink); fill: none; stroke-width: 1.6; }
+.care b { font-weight: 600; }
+.addform { display: grid; grid-template-columns: 2fr 1fr 1.2fr; gap: 12px; }
+.qs { display: flex; flex-wrap: wrap; gap: 8px 18px; grid-column: 1 / -1; }
+.qs label { display: flex; gap: 8px; align-items: center; font-size: 15px; cursor: pointer; }
+.qs input { width: 18px; height: 18px; accent-color: var(--accent); }
+.addform .actions { grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 12px; font-size: 14px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--surface); border-color: var(--ink); }
+.tabs .n { font: 12px var(--mono); color: var(--muted); margin-left: 4px; }
+
+.items { display: grid; gap: 10px; }
+.item {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 10px 16px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+  border-left: 4px solid var(--vc, var(--line));
+}
+.item[data-v="keep"] { --vc: var(--keep); }
+.item[data-v="maybe"] { --vc: var(--maybe); }
+.item[data-v="go"] { --vc: var(--go); }
+.item .name { font-weight: 600; }
+.item .meta { font-size: 13px; color: var(--muted); }
+.marks { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 12px var(--mono); color: var(--muted); margin-top: 4px; }
+.marks .y { color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; font-size: 13px; cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"][data-val="keep"] { background: var(--keep); color: var(--bg); }
+.seg button[aria-pressed="true"][data-val="maybe"] { background: var(--maybe); color: var(--bg); }
+.seg button[aria-pressed="true"][data-val="go"] { background: var(--go); color: var(--bg); }
+.suggest { font-size: 12px; color: var(--muted); }
+.empty { color: var(--muted); font-style: italic; padding: 12px 0; }
+
+.feelgood { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.feelgood .chips .chip { cursor: default; }
+
+/* purge */
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.tile .big { font: 500 34px/1.1 var(--display); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.exit-row { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--line); }
+.exit-row:last-child { border-bottom: 0; }
+.exit-ctl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.exit-ctl select { width: auto; }
+.money { position: relative; }
+.money::before { content: "$"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
+.money input { padding-left: 22px; width: 96px; }
+.routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.routes div { border-top: 1px solid var(--ink); padding-top: 10px; display: grid; gap: 4px; align-content: start; }
+.routes b { font-family: var(--display); font-size: 19px; font-style: italic; font-weight: 500; }
+.routes p { font-size: 14px; color: var(--muted); }
+
+/* chart */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
+.chart { display: grid; gap: 18px; margin-top: 18px; }
+.crow { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; }
+.crow .who { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.bars { display: grid; gap: 4px; position: relative;
+  background-image: linear-gradient(to right, var(--line) 1px, transparent 1px);
+  background-size: 25% 100%; background-position: -0.5px 0; }
+.bar { display: flex; align-items: center; gap: 8px; height: 18px; }
+.bar i { display: block; height: 100%; border-radius: 0 4px 4px 0; min-width: 2px; transition: width .4s ease; }
+.bar.life i { background: var(--life); }
+.bar.closet i { background: var(--closet); }
+.bar span { font: 12px var(--mono); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.axis { display: grid; grid-template-columns: 150px 1fr; gap: 14px; }
+.axis div { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--muted); }
+.insights { display: grid; gap: 10px; }
+.insights p { padding-left: 14px; border-left: 2px solid var(--accent); }
+
+/* wishlist */
+.wish { display: grid; gap: 12px; }
+.wrow { display: grid; grid-template-columns: 1.6fr 1fr 1fr .7fr .8fr .8fr auto; gap: 10px; align-items: end; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.wrow .verdict { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; align-items: center; }
+.pill { font: 500 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.good { color: var(--keep); } .pill.mid { color: var(--maybe); } .pill.bad { color: var(--go); }
+.ok { color: var(--keep); } .no { color: var(--muted); }
+
+/* budget */
+.budget { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; align-items: start; }
+.brow { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.brow .field { flex: 1 1 140px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+th { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+.cpw { display: grid; grid-template-columns: repeat(3, 1fr) 1.2fr; gap: 12px; align-items: end; }
+.cpw .result { font: 500 40px/1 var(--display); font-variant-numeric: tabular-nums; }
+.checklist { display: grid; gap: 10px; }
+.checklist label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.checklist input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--accent); flex: none; }
+
+footer { border-top: 1px solid var(--line); padding-block: 32px 48px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; color: var(--muted); font-size: 14px; }
+.confirm { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-block: 36px 24px; gap: 24px; }
+  .rack { height: 290px; }
+  .htag { width: 44%; }
+  .htag:nth-child(1) { left: 0; } .htag:nth-child(2) { left: 28%; } .htag:nth-child(3) { left: 56%; }
+  .versions, .principles { grid-template-columns: 1fr; }
+  .care, .tiles { grid-template-columns: 1fr 1fr; }
+  .addform { grid-template-columns: 1fr 1fr; }
+  .addform .field:first-child { grid-column: 1 / -1; }
+  .feelgood, .budget, .thennow { grid-template-columns: 1fr; }
+  .wrow { grid-template-columns: 1fr 1fr 1fr; }
+  .wrow .field:first-child { grid-column: 1 / -1; }
+  .cpw { grid-template-columns: 1fr 1fr 1fr; }
+  .cpw .field:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 520px) {
+  .wrap { padding-inline: 16px; }
+  .num { font-size: 46px; }
+  .step-head { gap: 6px 14px; }
+  .item { grid-template-columns: 1fr auto; }
+  .item .seg { grid-column: 1 / -1; justify-self: start; }
+  .item > .x { grid-row: 1; grid-column: 2; }
+  .shift { grid-template-columns: 1fr; }
+  .crow, .axis { grid-template-columns: 1fr; gap: 6px; }
+  .axis > span { display: none; }
+  .exit-row { grid-template-columns: 1fr; }
+  .exit-ctl { justify-content: flex-start; }
+  .wrow { grid-template-columns: 1fr 1fr; }
+  .htag .card { padding: 26px 12px 14px; }
+  .htag h3 { font-size: 19px; }
+  .htag .words { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Steps">
+  <div class="wrap nav-inner" id="nav">
+    <a href="#define"><b>1</b>What is style?</a>
+    <a href="#quiz"><b>2</b>Pop quiz</a>
+    <a href="#closet"><b>3</b>Shop your closet</a>
+    <a href="#letgo"><b>4</b>Let go</a>
+    <a href="#who"><b>5</b>Who you shop for</a>
+    <a href="#add"><b>6</b>Add with intent</a>
+    <a href="#budget"><b>7</b>Budget</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
+    <div>
+      <p class="label">A style workbook in seven steps</p>
+      <h1>Style, <span>plural.</span></h1>
+      <p class="lede">You are more than one person in a week. Your closet should know that.</p>
+      <p class="sub">This is not a quiz that hands you a label. It is a way to understand the different versions of you, dress the ones you actually live as, and shop on purpose.</p>
+    </div>
+    <div class="rack" id="rack" aria-label="Your three versions"></div>
+  </header>
+
+  <div class="banner" id="banner" hidden>
+    <p><b>You're looking at sample answers.</b> They show how each step works. Clear them to fill in your own.</p>
+    <button class="btn small" id="clear-sample" type="button">Start with a blank workbook</button>
+  </div>
+
+  <!-- 1 -->
+  <section class="step" id="define">
+    <div class="step-head">
+      <span class="num">1</span>
+      <h2>What is style?</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Style is how you say who you are before you say anything at all. It lives in the way you put things together, what you reach for when no one is watching, and how you want to feel when you walk out the door.</p>
+        <p>There is no correct answer. Trends tell you what everyone is wearing. Style is what <em>you</em> keep choosing, and why.</p>
+      </div>
+      <div class="principles">
+        <div><h3>Personal</h3><p>It belongs to your body, your budget, your climate and your days. Someone else's rules can inspire you, but they can't define you.</p></div>
+        <div><h3>Ever-changing</h3><p>A new job, a new city, a new decade or a new mood will change what feels right. That is growth, not inconsistency.</p></div>
+        <div><h3>Plural</h3><p>You are a colleague, a friend, a partner, a weekend wanderer. Each version of you gets dressed a little differently.</p></div>
+      </div>
+      <div class="panel">
+        <h3>Try it: then and now</h3>
+        <p class="hint">Pick the words that described your style five years ago, then the words that fit today.</p>
+        <div class="thennow" style="margin-top:18px">
+          <div><span class="label">Five years ago</span><div class="chips" id="then"></div></div>
+          <div><span class="label">Today</span><div class="chips" id="now"></div></div>
+        </div>
+        <div class="shift" id="shift" style="margin-top:22px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step" id="quiz">
+    <div class="step-head">
+      <span class="num">2</span>
+      <h2>Pop quiz: three versions of you</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Think of three different versions of yourself. Maybe it's the you who goes to work, the you who runs errands on Saturday, and the you who gets dressed up for a night out. Maybe it's the parent, the artist and the traveler. Give each one a name and describe how they dress.</p>
+        <p class="hint">Stuck? Try: Weekday you, Weekend you, Evening you, Travel you, Creative you, Future you.</p>
+      </div>
+      <div class="versions" id="versions"></div>
+      <div class="panel">
+        <h3>How your week splits</h3>
+        <p class="hint">Use the sliders on each tag. This split drives the closet check and the budget later on.</p>
+        <div class="week" id="week" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="step" id="closet">
+    <div class="step-head">
+      <span class="num">3</span>
+      <h2>Shop your closet first</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Before you buy anything new, look at what you already own. Pull everything out, try it on, and ask four questions of every piece. You are looking for the clothes that make you look good <em>and</em> feel good. Those are your blueprint.</p>
+      </div>
+      <div class="care" aria-label="The four questions">
+        <div>
+          <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="10"/><path d="M10 13h.01M18 13h.01M10 17c2 2 6 2 8 0"/></svg>
+          <b>Do I look good?</b><span class="hint">Check it in the mirror, in daylight.</span>
+        </div>
+        <div>
+          <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 23s-8-4.8-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 22 12c0 6.2-8 11-8 11z"/></svg>
+          <b>Do I feel like myself?</b><span class="hint">Or do you feel like you're in a costume?</span>
+        </div>
+        <div>
+          <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M4 10h20v8H4z"/><path d="M8 10v4M12 10v3M16 10v4M20 10v3"/></svg>
+          <b>Does it fit today?</b><span class="hint">Your body now, not a past or future one.</span>
+        </div>
+        <div>
+          <svg viewBox="0 0 28 28" aria-hidden="true"><rect x="5" y="6" width="18" height="17" rx="2"/><path d="M5 11h18M10 4v4M18 4v4"/></svg>
+          <b>Worn in the last year?</b><span class="hint">A full year covers every season.</span>
+        </div>
+      </div>
+
+      <form class="panel addform" id="addform" autocomplete="off">
+        <label class="field"><span>Piece</span><input type="text" id="f-name" placeholder="e.g. Olive trench coat" required></label>
+        <label class="field"><span>Category</span><select id="f-cat"></select></label>
+        <label class="field"><span>Which version wears it?</span><select id="f-v" class="vsel"></select></label>
+        <div class="qs">
+          <label><input type="checkbox" id="f-look">I look good</label>
+          <label><input type="checkbox" id="f-feel">I feel like myself</label>
+          <label><input type="checkbox" id="f-fits">It fits today</label>
+          <label><input type="checkbox" id="f-worn">Worn in the last year</label>
+        </div>
+        <div class="actions">
+          <button class="btn" type="submit">Add to closet</button>
+          <span class="hint">4 yeses = keep. 2 or 3 = maybe. 0 or 1 = let it go. You can always override.</span>
+        </div>
+      </form>
+
+      <div class="tabs" id="tabs" role="group" aria-label="Filter pieces"></div>
+      <div class="items" id="items"></div>
+
+      <div class="panel feelgood">
+        <div>
+          <h3>Your feel-good pieces</h3>
+          <p class="hint">Everything you kept where you said yes to looking good and feeling like yourself.</p>
+          <div class="chips" id="fg-list" style="margin-top:14px"></div>
+          <p id="fg-summary" style="margin-top:14px"></p>
+        </div>
+        <label class="field">
+          <span>What do they have in common? Think color, fabric, fit, silhouette, how they move.</span>
+          <textarea id="common" placeholder="e.g. High waists, soft fabrics, deep colors, nothing I have to tug at all day."></textarea>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="step" id="letgo">
+    <div class="step-head">
+      <span class="num">4</span>
+      <h2>Let go: sell, donate, or rehome</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Everything that didn't earn a keep gets a next home. Letting go makes room to see what you actually love, and selling puts money back into your budget for step 7.</p>
+      </div>
+      <div class="tiles" id="tiles"></div>
+      <div class="panel">
+        <h3>Your let-go pile</h3>
+        <p class="hint">Choose where each piece goes. Add an asking price for anything you sell.</p>
+        <div id="exits" style="margin-top:10px"></div>
+      </div>
+      <div class="panel">
+        <h3>The maybe box</h3>
+        <p class="hint">Put your maybes in a box and write today's date on it. Anything you haven't gone looking for in 30 days goes to the let-go pile.</p>
+        <div class="chips" id="maybes" style="margin-top:14px"></div>
+      </div>
+      <div class="routes">
+        <div><b>Sell</b><p>Best for pieces in great condition, recognizable labels, or items with tags still on. Photograph in daylight, list measurements, and price about a third of retail.</p></div>
+        <div><b>Donate</b><p>Clean, wearable pieces that won't sell quickly. Check what local shelters and charities actually need before you drop off.</p></div>
+        <div><b>Swap</b><p>Host a clothing swap with friends. Everyone leaves with something new and nobody spends a thing.</p></div>
+        <div><b>Tailor it</b><p>If you love it but the fit is off, a hem or a nip at the waist is often cheaper than replacing it.</p></div>
+        <div><b>Recycle textiles</b><p>Stained, torn or worn-through pieces go to a textile recycling drop-off, not the trash.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step" id="who">
+    <div class="step-head">
+      <span class="num">5</span>
+      <h2>Who have you been shopping for?</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Now compare how you actually spend your week with who your closet is dressed for. Most of us shop for the version of ourselves that's the most fun to picture, not the one who gets dressed most mornings. Pieces bought for "someday" land under <em>Someone else</em>.</p>
+      </div>
+      <div class="panel">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center">
+          <div class="legend">
+            <span><i style="background:var(--life)"></i>Share of your week</span>
+            <span><i style="background:var(--closet)"></i>Share of your closet</span>
+          </div>
+          <div class="tabs" role="group" aria-label="Which closet">
+            <button type="button" data-scope="all" aria-pressed="true">Everything you owned</button>
+            <button type="button" data-scope="kept" aria-pressed="false">After letting go</button>
+          </div>
+        </div>
+        <div class="chart" id="chart" role="img" aria-label="Share of week compared with share of closet for each version"></div>
+        <div class="axis" aria-hidden="true"><span></span><div><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div></div>
+      </div>
+      <div class="insights" id="insights"></div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="step" id="add">
+    <div class="step-head">
+      <span class="num">6</span>
+      <h2>Add with intent</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Now you know what makes you feel good and which version of you is under-dressed. Build a short list of what to add. A strong addition works with at least three things you already own and serves a version of you that actually needs it.</p>
+      </div>
+      <div class="wish" id="wish"></div>
+      <div><button class="btn ghost" type="button" id="add-wish">+ Add a piece to the list</button></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="step" id="budget">
+    <div class="step-head">
+      <span class="num">7</span>
+      <h2>Set your budget</h2>
+    </div>
+    <div class="step-body">
+      <div class="prose">
+        <p>Decide what you can spend before you open a single shopping tab. Then split it the way you split your week, so the version of you who gets dressed most often gets most of the money.</p>
+      </div>
+      <div class="budget">
+        <div class="panel" style="display:grid;gap:16px">
+          <h3>Your number</h3>
+          <div class="brow">
+            <label class="field"><span>Amount</span><span class="money"><input type="number" id="b-amount" min="0" step="10" style="width:100%"></span></label>
+            <label class="field"><span>Per</span><select id="b-period"><option value="month">Month</option><option value="season">Season (3 months)</option><option value="year">Year</option></select></label>
+          </div>
+          <div class="qs" style="grid-column:auto"><label><input type="checkbox" id="b-resale">Add my resale earnings from step 4</label></div>
+          <p id="b-total"></p>
+        </div>
+        <div class="panel">
+          <h3>Split by version</h3>
+          <div class="table-wrap"><table id="b-table"></table></div>
+        </div>
+      </div>
+      <div class="panel" style="display:grid;gap:16px">
+        <div>
+          <h3>Cost per wear</h3>
+          <p class="hint">A $120 pair of boots you wear every week for three years costs less per wear than a $30 top you wear twice.</p>
+        </div>
+        <div class="cpw">
+          <label class="field"><span>Price</span><span class="money"><input type="number" id="c-price" min="0" style="width:100%"></span></label>
+          <label class="field"><span>Wears per week</span><input type="number" id="c-week" min="0" step="0.5"></label>
+          <label class="field"><span>Years you'll wear it</span><input type="number" id="c-years" min="0" step="0.5"></label>
+          <div class="field"><span>Cost per wear</span><span class="cpw result" id="c-out">$0.00</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Before you buy</h3>
+        <div class="checklist" id="checklist" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Your answers are saved in this browser only.</p>
+    <span class="confirm" id="reset-wrap">
+      <button class="btn ghost small" type="button" id="reset">Reset workbook</button>
+    </span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  const KEY = 'style-plural-v1';
+  const WORDS = ['classic','minimal','relaxed','polished','sporty','romantic','edgy','bohemian','preppy','playful','bold','soft','vintage','practical','glam','artsy','cozy','sharp'];
+  const CATS = ['Tops','Bottoms','Dresses & sets','Outerwear','Shoes','Bags & accessories','Activewear','Other'];
+  const EXITS = { sell: 'Sell', donate: 'Donate', swap: 'Swap', tailor: 'Tailor it', recycle: 'Recycle textiles' };
+  const WHY = { gap: 'Fills a gap', replace: 'Replaces something worn out', upgrade: 'Upgrade', want: 'I just want it' };
+  const CHECKS = [
+    'I have looked in my closet for something that already does this job.',
+    'It works with at least three things I own.',
+    'I would wear it in the next two weeks.',
+    'It fits my body today, not a someday body.',
+    'It fits my budget for this version of me.',
+    'I would still want it if it weren\'t on sale.'
+  ];
+  const PERIOD = { month: 'month', season: 'season', year: 'year' };
+
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = n => '$' + (Math.round(n * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  const $ = id => document.getElementById(id);
+
+  function item(name, cat, v, q, extra) {
+    return Object.assign({ id: uid(), name, cat, v, q: { look: q[0], feel: q[1], fits: q[2], worn: q[3] }, verdict: null, exit: 'donate', price: 0 }, extra || {});
+  }
+  function sample() {
+    return {
+      example: true,
+      then: ['preppy', 'polished', 'playful', 'practical'],
+      now: ['minimal', 'relaxed', 'polished', 'bold'],
+      versions: [
+        { id: 'v1', name: 'Monday Me', moment: 'Office days and client meetings', words: 'polished, sharp, calm', piece: 'Wide-leg black trousers', feel: 'Capable', time: 50 },
+        { id: 'v2', name: 'Saturday Me', moment: 'Farmers market, park, coffee with friends', words: 'easy, cozy, a little sporty', piece: 'Worn-in denim jacket', feel: 'Free', time: 35 },
+        { id: 'v3', name: 'After-Dark Me', moment: 'Dinners, birthdays, live music', words: 'bold, glowing, playful', piece: 'Satin slip skirt', feel: 'Magnetic', time: 15 }
+      ],
+      items: [
+        item('Black wide-leg trousers', 'Bottoms', 'v1', [1, 1, 1, 1]),
+        item('Cream silk blouse (pulls at the buttons)', 'Tops', 'v1', [0, 1, 0, 1], { exit: 'tailor' }),
+        item('Denim jacket', 'Outerwear', 'v2', [1, 1, 1, 1]),
+        item('Grey hoodie', 'Activewear', 'v2', [1, 1, 1, 1]),
+        item('Striped long-sleeve tee', 'Tops', 'v2', [1, 1, 1, 1]),
+        item('Gold hoop earrings', 'Bags & accessories', 'v3', [1, 1, 1, 1]),
+        item('Sequin mini dress, worn once', 'Dresses & sets', 'v3', [1, 0, 0, 0], { exit: 'sell', price: 35 }),
+        item('Hiking boots, never worn', 'Shoes', 'none', [0, 0, 1, 0], { exit: 'sell', price: 60 }),
+        item('Linen blazer for "someday"', 'Outerwear', 'none', [1, 0, 1, 0]),
+        item('Pencil skirt from an old job', 'Bottoms', 'none', [0, 0, 0, 1], { verdict: 'go', exit: 'donate' })
+      ],
+      wish: [
+        { id: uid(), name: 'Navy tailored blazer', v: 'v1', why: 'gap', pairs: 5, price: 140, wears: 60 },
+        { id: uid(), name: 'Second pair of work trousers', v: 'v1', why: 'gap', pairs: 4, price: 90, wears: 80 },
+        { id: uid(), name: 'Metallic heels', v: 'v3', why: 'want', pairs: 1, price: 110, wears: 4 }
+      ],
+      common: 'High waists, soft fabrics, deep colors, and nothing I have to tug at all day.',
+      budget: { amount: 150, period: 'month', resale: true },
+      cpw: { price: 120, week: 1, years: 3 },
+      checks: [],
+      filter: 'all',
+      scope: 'all'
+    };
+  }
+  function blank() {
+    return {
+      example: false, then: [], now: [],
+      versions: [
+        { id: 'v1', name: '', moment: '', words: '', piece: '', feel: '', time: 50 },
+        { id: 'v2', name: '', moment: '', words: '', piece: '', feel: '', time: 30 },
+        { id: 'v3', name: '', moment: '', words: '', piece: '', feel: '', time: 20 }
+      ],
+      items: [], wish: [], common: '',
+      budget: { amount: 100, period: 'month', resale: true },
+      cpw: { price: 80, week: 1, years: 2 },
+      checks: [], filter: 'all', scope: 'all'
+    };
+  }
+
+  let S;
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+  if (!S || !Array.isArray(S.versions)) S = sample();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable */ } }
+
+  const vName = (id, i) => {
+    if (id === 'none') return 'Someone else';
+    const idx = S.versions.findIndex(v => v.id === id);
+    const v = S.versions[idx];
+    return v && v.name.trim() ? v.name.trim() : 'Version ' + (idx + 1);
+  };
+  const timeShares = () => {
+    const tot = S.versions.reduce((a, v) => a + (+v.time || 0), 0) || 1;
+    return Object.fromEntries(S.versions.map(v => [v.id, (+v.time || 0) / tot]));
+  };
+  const yeses = it => ['look', 'feel', 'fits', 'worn'].filter(k => it.q[k]).length;
+  const suggest = it => { const n = yeses(it); return n === 4 ? 'keep' : n >= 2 ? 'maybe' : 'go'; };
+  const verdict = it => it.verdict || suggest(it);
+  const VLABEL = { keep: 'Keep', maybe: 'Maybe', go: 'Let go' };
+  const resaleTotal = () => S.items.filter(i => verdict(i) === 'go' && i.exit === 'sell').reduce((a, i) => a + (+i.price || 0), 0);
+
+  function closetShares(scope) {
+    const pool = scope === 'kept' ? S.items.filter(i => verdict(i) !== 'go') : S.items;
+    const n = pool.length || 1;
+    const out = {};
+    S.versions.forEach(v => out[v.id] = 0);
+    out.none = 0;
+    pool.forEach(i => { out[i.v in out ? i.v : 'none']++; });
+    Object.keys(out).forEach(k => out[k] = pool.length ? out[k] / n : 0);
+    return out;
+  }
+  function underserved() {
+    const t = timeShares(), c = closetShares('kept');
+    return S.versions.filter(v => c[v.id] < t[v.id]).map(v => v.id);
+  }
+
+  /* ---------- hero rack ---------- */
+  function renderRack() {
+    const t = timeShares();
+    $('rack').innerHTML = S.versions.map((v, i) => `
+      <div class="htag"><div class="card">
+        <h3>${esc(vName(v.id))}</h3>
+        <p class="words">${esc(v.words || 'Three words for their style')}</p>
+        <span class="pct">${Math.round(t[v.id] * 100)}% of the week</span>
+      </div></div>`).join('');
+  }
+
+  /* ---------- 1: then & now ---------- */
+  function renderWords() {
+    ['then', 'now'].forEach(k => {
+      $(k).innerHTML = WORDS.map(w => `<button type="button" class="chip" data-word="${w}" data-list="${k}" aria-pressed="${S[k].includes(w)}">${w}</button>`).join('');
+    });
+    const stayed = S.now.filter(w => S.then.includes(w));
+    const left = S.then.filter(w => !S.now.includes(w));
+    const fresh = S.now.filter(w => !S.then.includes(w));
+    const fmt = a => a.length ? esc(a.join(', ')) : '<span class="hint">nothing yet</span>';
+    $('shift').innerHTML = `
+      <div><span class="label">Stayed with you</span><p>${fmt(stayed)}</p></div>
+      <div><span class="label">Left behind</span><p>${fmt(left)}</p></div>
+      <div><span class="label">New in your life</span><p>${fmt(fresh)}</p></div>`;
+  }
+
+  /* ---------- 2: versions ---------- */
+  function renderVersions() {
+    const t = timeShares();
+    $('versions').innerHTML = S.versions.map((v, i) => `
+      <div class="vtag">
+        <span class="label">Version ${i + 1}</span>
+        <label class="field"><span class="sr" hidden>Name</span>
+          <input class="vname" type="text" id="v-${v.id}-name" data-v="${v.id}" data-f="name" value="${esc(v.name)}" placeholder="${['Weekday you', 'Weekend you', 'Evening you'][i]}" aria-label="Name for version ${i + 1}"></label>
+        <label class="field"><span>Where do they show up?</span>
+          <input type="text" id="v-${v.id}-moment" data-v="${v.id}" data-f="moment" value="${esc(v.moment)}" placeholder="Work, school pickup, date night…"></label>
+        <label class="field"><span>Three words for their style</span>
+          <input type="text" id="v-${v.id}-words" data-v="${v.id}" data-f="words" value="${esc(v.words)}" placeholder="e.g. polished, calm, sharp"></label>
+        <label class="field"><span>Signature piece</span>
+          <input type="text" id="v-${v.id}-piece" data-v="${v.id}" data-f="piece" value="${esc(v.piece)}" placeholder="The thing they always reach for"></label>
+        <label class="field"><span>How they want to feel</span>
+          <input type="text" id="v-${v.id}-feel" data-v="${v.id}" data-f="feel" value="${esc(v.feel)}" placeholder="Confident, comfortable, magnetic…"></label>
+        <label class="field">
+          <span class="range-row"><span>Share of your week</span><b id="v-${v.id}-pct">${Math.round(t[v.id] * 100)}%</b></span>
+          <input type="range" id="v-${v.id}-time" min="0" max="100" step="5" data-v="${v.id}" data-f="time" value="${+v.time || 0}">
+        </label>
+      </div>`).join('');
+  }
+  function renderWeek() {
+    const t = timeShares();
+    $('week').innerHTML = S.versions.map(v => {
+      const p = Math.round(t[v.id] * 100);
+      return `<div style="flex:${Math.max(p, 0.001)}" title="${esc(vName(v.id))}: ${p}%">${p >= 8 ? esc(vName(v.id)) + ' ' + p + '%' : ''}</div>`;
+    }).join('');
+    S.versions.forEach(v => { const el = $(`v-${v.id}-pct`); if (el) el.textContent = Math.round(t[v.id] * 100) + '%'; });
+  }
+  function refreshVersionSelects() {
+    document.querySelectorAll('select.vsel').forEach(sel => {
+      const val = sel.value;
+      sel.innerHTML = S.versions.map(v => `<option value="${v.id}">${esc(vName(v.id))}</option>`).join('') + `<option value="none">Someone else / "someday"</option>`;
+      if (val) sel.value = val;
+    });
+  }
+
+  /* ---------- 3: closet ---------- */
+  function renderTabs() {
+    const c = { all: S.items.length, keep: 0, maybe: 0, go: 0 };
+    S.items.forEach(i => c[verdict(i)]++);
+    $('tabs').innerHTML = [['all', 'All'], ['keep', 'Keep'], ['maybe', 'Maybe'], ['go', 'Let go']].map(([k, l]) =>
+      `<button type="button" data-filter="${k}" aria-pressed="${S.filter === k}">${l}<span class="n">${c[k]}</span></button>`).join('');
+  }
+  function renderItems() {
+    renderTabs();
+    const list = S.items.filter(i => S.filter === 'all' || verdict(i) === S.filter);
+    if (!list.length) {
+      $('items').innerHTML = `<p class="empty">${S.items.length ? 'Nothing in this pile.' : 'Add your first piece above. Start with whatever is on the chair.'}</p>`;
+      return;
+    }
+    const Q = [['look', 'looks good'], ['feel', 'feels like me'], ['fits', 'fits'], ['worn', 'worn this year']];
+    $('items').innerHTML = list.map(i => {
+      const v = verdict(i), s = suggest(i);
+      return `<div class="item" data-v="${v}">
+        <div>
+          <div class="name">${esc(i.name)}</div>
+          <div class="meta">${esc(i.cat)} · ${esc(vName(i.v))}</div>
+          <div class="marks">${Q.map(([k, l]) => `<span class="${i.q[k] ? 'y' : ''}">${i.q[k] ? '✓' : '✕'} ${l}</span>`).join('')}</div>
+          ${i.verdict && i.verdict !== s ? `<div class="suggest">The four questions suggested: ${VLABEL[s]}</div>` : ''}
+        </div>
+        <div class="seg" role="group" aria-label="Decision for ${esc(i.name)}">
+          ${['keep', 'maybe', 'go'].map(k => `<button type="button" data-item="${i.id}" data-val="${k}" aria-pressed="${v === k}">${VLABEL[k]}</button>`).join('')}
+        </div>
+        <button class="x" type="button" data-del="${i.id}" aria-label="Remove ${esc(i.name)}">×</button>
+      </div>`;
+    }).join('');
+  }
+  function renderFeelGood() {
+    const fg = S.items.filter(i => verdict(i) === 'keep' && i.q.look && i.q.feel);
+    $('fg-list').innerHTML = fg.length ? fg.map(i => `<span class="chip static">${esc(i.name)}</span>`).join('') : '<p class="empty">Keep a few pieces in step 3 and they will show up here.</p>';
+    if (!fg.length) { $('fg-summary').textContent = ''; return; }
+    const cats = {};
+    fg.forEach(i => cats[i.cat] = (cats[i.cat] || 0) + 1);
+    const top = Object.entries(cats).sort((a, b) => b[1] - a[1]).slice(0, 2).map(e => e[0].toLowerCase());
+    $('fg-summary').innerHTML = `You have <b>${fg.length}</b> feel-good ${fg.length === 1 ? 'piece' : 'pieces'}, mostly <b>${esc(top.join(' and '))}</b>. When you shop, you are looking for more of whatever these have in common.`;
+  }
+
+  /* ---------- 4: let go ---------- */
+  function renderExits() {
+    const go = S.items.filter(i => verdict(i) === 'go');
+    $('exits').innerHTML = go.length ? go.map(i => `
+      <div class="exit-row">
+        <div><div class="name" style="font-weight:600">${esc(i.name)}</div><div class="hint">${esc(i.cat)} · ${esc(vName(i.v))}</div></div>
+        <div class="exit-ctl">
+          <select id="exit-${i.id}" data-exit="${i.id}" aria-label="Where ${esc(i.name)} goes">
+            ${Object.entries(EXITS).map(([k, l]) => `<option value="${k}" ${i.exit === k ? 'selected' : ''}>${l}</option>`).join('')}
+          </select>
+          ${i.exit === 'sell' ? `<span class="money"><input type="number" min="0" id="price-${i.id}" data-price="${i.id}" value="${+i.price || ''}" placeholder="0" aria-label="Asking price"></span>` : ''}
+        </div>
+      </div>`).join('') : '<p class="empty">Nothing marked "Let go" yet.</p>';
+    const maybes = S.items.filter(i => verdict(i) === 'maybe');
+    $('maybes').innerHTML = maybes.length ? maybes.map(i => `<span class="chip static">${esc(i.name)}</span>`).join('') : '<p class="empty">No maybes. Decisive!</p>';
+  }
+  function renderTiles() {
+    const go = S.items.filter(i => verdict(i) === 'go');
+    const count = k => go.filter(i => i.exit === k).length;
+    const kept = S.items.filter(i => verdict(i) === 'keep').length;
+    $('tiles').innerHTML = `
+      <div class="tile"><span class="label">Keeping</span><div class="big">${kept}</div></div>
+      <div class="tile"><span class="label">To sell</span><div class="big">${count('sell')}</div></div>
+      <div class="tile"><span class="label">Est. resale</span><div class="big">${money(resaleTotal())}</div></div>
+      <div class="tile"><span class="label">Donate, swap, other</span><div class="big">${go.length - count('sell')}</div></div>`;
+  }
+
+  /* ---------- 5: chart ---------- */
+  function renderChart() {
+    const t = timeShares(), c = closetShares(S.scope);
+    const rows = S.versions.map(v => ({ id: v.id, name: vName(v.id), life: t[v.id], closet: c[v.id] }));
+    if (c.none > 0 || S.items.some(i => i.v === 'none')) rows.push({ id: 'none', name: 'Someone else', life: 0, closet: c.none });
+    const pct = x => Math.round(x * 100);
+    $('chart').innerHTML = rows.map(r => `
+      <div class="crow">
+        <div class="who">${esc(r.name)}</div>
+        <div class="bars">
+          <div class="bar life" title="${esc(r.name)}: ${pct(r.life)}% of your week"><i style="width:${r.life * 100}%"></i><span>${pct(r.life)}% of week</span></div>
+          <div class="bar closet" title="${esc(r.name)}: ${pct(r.closet)}% of your closet"><i style="width:${r.closet * 100}%"></i><span>${pct(r.closet)}% of closet</span></div>
+        </div>
+      </div>`).join('');
+
+    const lines = [];
+    if (!S.items.length) {
+      lines.push('Add pieces in step 3 to see who your closet is dressed for.');
+    } else {
+      const gaps = rows.filter(r => r.id !== 'none').map(r => ({ ...r, gap: r.closet - r.life })).sort((a, b) => a.gap - b.gap);
+      const under = gaps[0], over = gaps[gaps.length - 1];
+      if (under.gap < -0.05) lines.push(`<b>${esc(under.name)}</b> is ${pct(under.life)}% of your week but only ${pct(under.closet)}% of your closet. This is where new pieces should go first.`);
+      if (over.gap > 0.05) lines.push(`<b>${esc(over.name)}</b> has ${pct(over.closet)}% of your closet for ${pct(over.life)}% of your week. You have probably been shopping for this version most. Pause here.`);
+      if (c.none > 0) lines.push(`${pct(c.none)}% of your closet was bought for <b>someone else</b>: a someday self, an old job, a trip that never happened. Those pieces are the easiest to let go.`);
+      if (!lines.length) lines.push('Your closet is in step with your life. Nicely done.');
+    }
+    $('insights').innerHTML = lines.map(l => `<p>${l}</p>`).join('');
+    document.querySelectorAll('[data-scope]').forEach(b => b.setAttribute('aria-pressed', b.dataset.scope === S.scope));
+  }
+
+  /* ---------- 6: wishlist ---------- */
+  function wishVerdict(w) {
+    const u = underserved();
+    const checks = [
+      [(+w.pairs || 0) >= 3, 'Works with 3+ things you own'],
+      [u.includes(w.v), 'Dresses an under-served version'],
+      [w.why !== 'want', 'Has a job to do']
+    ];
+    const n = checks.filter(c => c[0]).length;
+    const cpw = (+w.wears || 0) > 0 ? (+w.price || 0) / +w.wears : null;
+    const pill = n === 3 ? '<span class="pill good">Strong add</span>' : n === 2 ? '<span class="pill mid">Think it over</span>' : '<span class="pill bad">Wait 30 days</span>';
+    return pill + checks.map(([ok, l]) => `<span class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '✕'} ${l}</span>`).join('') +
+      `<span class="no">First-year cost per wear: <b style="color:var(--ink)">${cpw === null ? '—' : money(cpw)}</b></span>`;
+  }
+  function renderWish() {
+    if (!S.wish.length) { $('wish').innerHTML = '<p class="empty">Your list is empty. Start with the version of you from step 5 who needs it most.</p>'; return; }
+    $('wish').innerHTML = S.wish.map(w => `
+      <div class="wrow">
+        <label class="field"><span>Piece</span><input type="text" id="w-${w.id}-name" data-w="${w.id}" data-f="name" value="${esc(w.name)}" placeholder="What are you adding?"></label>
+        <label class="field"><span>For</span><select class="vsel" id="w-${w.id}-v" data-w="${w.id}" data-f="v"></select></label>
+        <label class="field"><span>Why</span><select id="w-${w.id}-why" data-w="${w.id}" data-f="why">${Object.entries(WHY).map(([k, l]) => `<option value="${k}" ${w.why === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field"><span>Goes with</span><input type="number" min="0" id="w-${w.id}-pairs" data-w="${w.id}" data-f="pairs" value="${esc(w.pairs)}" title="How many pieces you own it works with"></label>
+        <label class="field"><span>Price</span><span class="money"><input type="number" min="0" id="w-${w.id}-price" data-w="${w.id}" data-f="price" value="${esc(w.price)}" style="width:100%"></span></label>
+        <label class="field"><span>Wears / yr</span><input type="number" min="0" id="w-${w.id}-wears" data-w="${w.id}" data-f="wears" value="${esc(w.wears)}"></label>
+        <button class="x" type="button" data-wdel="${w.id}" aria-label="Remove ${esc(w.name || 'piece')}">×</button>
+        <div class="verdict" id="wv-${w.id}">${wishVerdict(w)}</div>
+      </div>`).join('');
+    refreshVersionSelects();
+    S.wish.forEach(w => { const s = $(`w-${w.id}-v`); if (s) s.value = w.v; });
+  }
+  function refreshWishVerdicts() { S.wish.forEach(w => { const el = $(`wv-${w.id}`); if (el) el.innerHTML = wishVerdict(w); }); }
+
+  /* ---------- 7: budget ---------- */
+  function renderBudget() {
+    const b = S.budget, resale = b.resale ? resaleTotal() : 0;
+    const total = (+b.amount || 0) + resale;
+    $('b-total').innerHTML = `You have <b>${money(total)}</b> to spend this ${PERIOD[b.period]}` + (resale ? ` (${money(+b.amount || 0)} + ${money(resale)} from resale).` : '.');
+    const t = timeShares();
+    const rows = S.versions.map(v => {
+      const alloc = total * t[v.id];
+      const planned = S.wish.filter(w => w.v === v.id).reduce((a, w) => a + (+w.price || 0), 0);
+      const diff = alloc - planned;
+      return `<tr><td>${esc(vName(v.id))}</td><td class="n">${Math.round(t[v.id] * 100)}%</td><td class="n">${money(alloc)}</td><td class="n">${money(planned)}</td>
+        <td class="n ${diff < 0 ? '' : 'ok'}" style="${diff < 0 ? 'color:var(--go)' : ''}">${diff < 0 ? 'Over by ' + money(-diff) : money(diff) + ' left'}</td></tr>`;
+    });
+    const someday = S.wish.filter(w => w.v === 'none').reduce((a, w) => a + (+w.price || 0), 0);
+    if (someday) rows.push(`<tr><td>Someone else</td><td class="n">0%</td><td class="n">${money(0)}</td><td class="n">${money(someday)}</td><td class="n" style="color:var(--go)">Over by ${money(someday)}</td></tr>`);
+    $('b-table').innerHTML = `<thead><tr><th>Version</th><th class="n">Week</th><th class="n">Budget</th><th class="n">On your list</th><th class="n">Status</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+
+    const c = S.cpw, wears = (+c.week || 0) * 52 * (+c.years || 0);
+    $('c-out').textContent = wears ? money((+c.price || 0) / wears) : '—';
+  }
+  function renderChecklist() {
+    $('checklist').innerHTML = CHECKS.map((c, i) => `<label><input type="checkbox" id="chk-${i}" data-chk="${i}" ${S.checks.includes(i) ? 'checked' : ''}><span>${esc(c)}</span></label>`).join('');
+  }
+
+  /* ---------- orchestration ---------- */
+  function renderDerived() {
+    renderRack(); renderWeek(); refreshVersionSelects();
+    renderFeelGood(); renderTiles(); renderChart(); refreshWishVerdicts(); renderBudget();
+  }
+  function renderAll() {
+    $('banner').hidden = !S.example;
+    $('f-cat').innerHTML = CATS.map(c => `<option>${c}</option>`).join('');
+    renderWords(); renderVersions(); renderItems(); renderExits(); renderWish(); renderChecklist();
+    $('common').value = S.common || '';
+    $('b-amount').value = S.budget.amount; $('b-period').value = S.budget.period; $('b-resale').checked = !!S.budget.resale;
+    $('c-price').value = S.cpw.price; $('c-week').value = S.cpw.week; $('c-years').value = S.cpw.years;
+    renderDerived();
+  }
+  function commit(structural) { save(); structural ? renderAll() : renderDerived(); }
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    if (t.dataset.word) {
+      const list = S[t.dataset.list], w = t.dataset.word;
+      const i = list.indexOf(w); i >= 0 ? list.splice(i, 1) : list.push(w);
+      save(); renderWords();
+    } else if (t.dataset.filter) {
+      S.filter = t.dataset.filter; save(); renderItems();
+    } else if (t.dataset.item) {
+      const it = S.items.find(i => i.id === t.dataset.item);
+      it.verdict = t.dataset.val === suggest(it) ? null : t.dataset.val;
+      if (verdict(it) === 'go' && !it.exit) it.exit = 'donate';
+      save(); renderItems(); renderExits(); renderDerived();
+    } else if (t.dataset.del) {
+      S.items = S.items.filter(i => i.id !== t.dataset.del); commit(true);
+    } else if (t.dataset.scope) {
+      S.scope = t.dataset.scope; save(); renderChart();
+    } else if (t.dataset.wdel) {
+      S.wish = S.wish.filter(w => w.id !== t.dataset.wdel); commit(true);
+    } else if (t.id === 'add-wish') {
+      const u = underserved();
+      S.wish.push({ id: uid(), name: '', v: u[0] || S.versions[0].id, why: 'gap', pairs: 3, price: 50, wears: 20 });
+      commit(true);
+      const last = S.wish[S.wish.length - 1]; const el = $(`w-${last.id}-name`); if (el) el.focus();
+    } else if (t.id === 'clear-sample') {
+      S = blank(); commit(true);
+    } else if (t.id === 'reset') {
+      $('reset-wrap').innerHTML = `<span>Erase everything?</span><button class="btn small" type="button" id="reset-yes" style="background:var(--go);border-color:var(--go)">Erase</button><button class="btn ghost small" type="button" id="reset-no">Cancel</button>`;
+    } else if (t.id === 'reset-yes' || t.id === 'reset-no') {
+      if (t.id === 'reset-yes') { S = blank(); commit(true); window.scrollTo({ top: 0 }); }
+      $('reset-wrap').innerHTML = `<button class="btn ghost small" type="button" id="reset">Reset workbook</button>`;
+    }
+  });
+
+  const markOwn = () => { if (S.example) { S.example = false; $('banner').hidden = true; } };
+
+  document.addEventListener('input', e => {
+    const t = e.target, d = t.dataset;
+    if (d.v && d.f) {
+      const v = S.versions.find(x => x.id === d.v);
+      v[d.f] = d.f === 'time' ? +t.value : t.value;
+      markOwn(); save(); renderDerived();
+      if (d.f === 'name') { renderItems(); renderExits(); renderBudget(); }
+    } else if (d.w && d.f) {
+      const w = S.wish.find(x => x.id === d.w);
+      w[d.f] = ['pairs', 'price', 'wears'].includes(d.f) ? +t.value : t.value;
+      save(); refreshWishVerdicts(); renderBudget();
+    } else if (d.price) {
+      S.items.find(i => i.id === d.price).price = +t.value || 0;
+      save(); renderTiles(); renderBudget();
+    } else if (t.id === 'common') {
+      S.common = t.value; save();
+    } else if (t.id === 'b-amount') { S.budget.amount = +t.value || 0; save(); renderBudget(); }
+    else if (t.id === 'c-price') { S.cpw.price = +t.value || 0; save(); renderBudget(); }
+    else if (t.id === 'c-week') { S.cpw.week = +t.value || 0; save(); renderBudget(); }
+    else if (t.id === 'c-years') { S.cpw.years = +t.value || 0; save(); renderBudget(); }
+  });
+
+  document.addEventListener('change', e => {
+    const t = e.target, d = t.dataset;
+    if (d.exit) {
+      S.items.find(i => i.id === d.exit).exit = t.value;
+      save(); renderExits(); renderDerived();
+    } else if (d.chk) {
+      const i = +d.chk; S.checks = t.checked ? [...new Set([...S.checks, i])] : S.checks.filter(x => x !== i); save();
+    } else if (t.id === 'b-period') { S.budget.period = t.value; save(); renderBudget(); }
+    else if (t.id === 'b-resale') { S.budget.resale = t.checked; save(); renderBudget(); }
+  });
+
+  $('addform').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('f-name').value.trim();
+    if (!name) { $('f-name').focus(); return; }
+    const it = item(name, $('f-cat').value, $('f-v').value, [$('f-look').checked, $('f-feel').checked, $('f-fits').checked, $('f-worn').checked]);
+    S.items.unshift(it);
+    if (S.filter !== 'all' && S.filter !== suggest(it)) S.filter = 'all';
+    markOwn(); save();
+    renderItems(); renderExits(); renderDerived();
+    $('f-name').value = '';
+    ['f-look', 'f-feel', 'f-fits', 'f-worn'].forEach(id => $(id).checked = false);
+    $('f-name').focus();
+  });
+
+  // highlight the current step in the nav
+  const links = [...document.querySelectorAll('#nav a')];
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id));
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    document.querySelectorAll('section.step').forEach(s => io.observe(s));
+  }
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

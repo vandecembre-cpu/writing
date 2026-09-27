@@ -81,3 +81,11 @@ pytest
 
 Tests mock all Claude API calls, so they run offline and don't require
 `ANTHROPIC_API_KEY`.
+
+## Style, Plural
+
+`style-plural/index.html` is a standalone interactive style workbook: define
+what style means to you, name three versions of yourself, shop your closet
+with four questions, decide what to sell or donate, see which version of you
+you've been shopping for, plan purposeful additions, and set a budget. Open
+the file in a browser; answers are saved in that browser's local storage.
