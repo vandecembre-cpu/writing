@@ -15,20 +15,8 @@
   --sans: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #0C0C0E; --ink: #F2F2F0; --muted: #9C9CA4; --rule: #2A2A30; --soft: #17171B;
-    --accent: #8E9BFF; --on-accent: #0C0C0E; --keep: #6FCB93; --go: #FF8A80;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --paper: #0C0C0E; --ink: #F2F2F0; --muted: #9C9CA4; --rule: #2A2A30; --soft: #17171B;
-  --accent: #8E9BFF; --on-accent: #0C0C0E; --keep: #6FCB93; --go: #FF8A80;
-  color-scheme: dark;
-}
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; background: var(--paper); }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
 [hidden] { display: none !important; }
 p { margin: 0; }
@@ -118,7 +106,7 @@ form.compose button { border: 1px solid var(--ink); background: var(--ink); colo
     <a class="mark" href="index.html">FACET</a>
     <h1>The Edit</h1>
   </div>
-  <a class="back" href="index.html#add">← Back to the issue</a>
+  <a class="back" href="guide.html#step-6">← Back to the guide</a>
 </header>
 
 <div class="app">

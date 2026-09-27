@@ -85,10 +85,17 @@ Tests mock all Claude API calls, so they run offline and don't require
 ## Facet
 
 `facet/` is a standalone interactive style workbook styled like a fashion
-magazine. `facet/index.html` walks through seven chapters: what style means,
-a pop quiz naming three facets of yourself, shopping your own closet, letting
-go (with Depop, Poshmark and ThredUp as places to sell), who you've been
-shopping for, adding with intent, and a budget. `facet/shop.html` ("The
-Edit") gives each piece you want to add its own conversation and ends with
-searches at Zara, Paloma Wool and ASOS. Open the files in a browser; answers
-are saved in that browser's local storage.
+magazine:
+
+- `facet/index.html`: the landing page (start your workbook, or explore a
+  sample).
+- `facet/guide.html`: the guide, one step at a time: what style means, a pop
+  quiz naming three facets of yourself, shopping your own closet, letting go
+  (with Depop, Poshmark and ThredUp as places to sell), who you've been
+  shopping for, adding with intent, a budget, and a final one-page style
+  profile.
+- `facet/shop.html` ("The Edit"): each piece you want to add gets its own
+  conversation, ending with searches at Zara, Paloma Wool and ASOS.
+
+Open the files in a browser; answers are saved in that browser's local
+storage.
