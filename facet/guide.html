@@ -43,8 +43,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .shell { max-width: 1180px; margin: 0 auto; padding-inline: 24px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 56px; }
 .shell > nav { position: sticky; top: 72px; align-self: start; padding-block: 40px; }
 .steps { list-style: none; margin: 0; padding: 0; display: grid; }
-.steps button { width: 100%; background: none; border: 0; text-align: left; cursor: pointer; display: grid; grid-template-columns: 30px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--rule); color: var(--muted); }
-.steps button .n { font: italic 400 16px var(--display); }
+.steps button { width: 100%; background: none; border: 0; text-align: left; cursor: pointer; display: grid; grid-template-columns: 46px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--rule); color: var(--muted); }
+.steps button .n { font: italic 400 16px var(--display); white-space: nowrap; }
 .steps button .l { font-size: 15px; }
 .steps button.done { color: var(--ink); }
 .steps button.done .n::after { content: " ✓"; font: 12px var(--sans); color: var(--keep); }
