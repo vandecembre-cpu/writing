@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Facet Edit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --paper: #FFFFFF; --ink: #0D0D0F; --muted: #6C6C73; --rule: #E3E3E6; --soft: #F5F5F6;
+  --accent: #2536C9; --on-accent: #FFFFFF; --keep: #1F7A45; --go: #B3261E;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --sans: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; background: var(--paper); }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
+[hidden] { display: none !important; }
+p { margin: 0; }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.small-caps { font: 600 11px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+header.top { border-bottom: 1px solid var(--ink); padding: calc(env(safe-area-inset-top, 0px) + 14px) 24px 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex: none; }
+.brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.brand .mark { font: 800 26px/1 var(--display); text-decoration: none; }
+.brand h1 { font: italic 400 26px/1 var(--display); margin: 0; }
+.back { font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; text-decoration: none; color: var(--muted); white-space: nowrap; }
+.back:hover { color: var(--ink); }
+
+.app { flex: 1; min-height: 0; display: grid; grid-template-columns: 280px minmax(0, 1fr); }
+aside { border-right: 1px solid var(--rule); display: flex; flex-direction: column; min-height: 0; }
+.aside-head { padding: 20px 20px 12px; display: grid; gap: 12px; }
+.new { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 10px 14px; font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.threads { list-style: none; margin: 0; padding: 0 0 20px; overflow-y: auto; }
+.threads button { width: 100%; text-align: left; background: none; border: 0; border-left: 2px solid transparent; padding: 12px 20px; cursor: pointer; display: grid; gap: 2px; }
+.threads button:hover { background: var(--soft); }
+.threads button[aria-current="true"] { border-left-color: var(--accent); background: var(--soft); }
+.threads .t { font: 400 18px/1.25 var(--display); }
+.threads .s { font-size: 13px; color: var(--muted); }
+
+.convo { display: flex; flex-direction: column; min-height: 0; }
+.convo-head { padding: 18px 28px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.convo-head h2 { font: italic 400 30px/1.1 var(--display); margin: 0; }
+.del { background: none; border: 0; cursor: pointer; font: 600 11px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+.del:hover { color: var(--go); }
+.log { flex: 1; overflow-y: auto; padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+.msg { max-width: 640px; display: grid; gap: 6px; }
+.msg.bot { align-self: flex-start; }
+.msg.me { align-self: flex-end; background: var(--ink); color: var(--paper); padding: 10px 16px; max-width: 460px; }
+.msg.bot .who { font: 600 10px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.msg.bot p { font-size: 17px; }
+.msg.thinking p { color: var(--muted); font-style: italic; }
+.picks { align-self: stretch; max-width: 900px; display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--ink); }
+.shop { padding: 18px 20px; border-left: 1px solid var(--rule); display: grid; gap: 10px; align-content: start; }
+.shop:first-child { border-left: 0; padding-left: 0; }
+.shop h3 { font: 400 28px/1 var(--display); margin: 0; }
+.shop .note { font-size: 14px; color: var(--muted); }
+.shop a { font-size: 15px; text-decoration: none; border-bottom: 1px solid var(--rule); padding-block: 6px; display: flex; justify-content: space-between; gap: 8px; }
+.shop a:hover { border-color: var(--ink); }
+.shop a span:last-child { color: var(--accent); }
+
+.dock { border-top: 1px solid var(--rule); padding: 14px 28px calc(env(safe-area-inset-bottom, 0px) + 16px); display: grid; gap: 12px; flex: none; }
+.quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--rule); background: transparent; border-radius: 999px; padding: 6px 14px; font-size: 14px; cursor: pointer; }
+.chip:hover { border-color: var(--ink); }
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+form.compose { display: flex; gap: 10px; }
+form.compose input { flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--ink); padding: 10px 0; background: transparent; }
+form.compose input:focus { outline: none; }
+form.compose button { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 0 18px; font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.fine { font-size: 12px; color: var(--muted); }
+
+@media (max-width: 760px) {
+  header.top { padding-inline: 16px; }
+  .brand h1 { font-size: 22px; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  aside { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .aside-head { display: none; }
+  .threads { display: flex; overflow-x: auto; padding: 0; scrollbar-width: none; }
+  .threads li { flex: none; }
+  .threads button { border-left: 0; border-bottom: 2px solid transparent; padding: 10px 14px; }
+  .threads button[aria-current="true"] { border-bottom-color: var(--accent); }
+  .threads .t { font-size: 16px; white-space: nowrap; }
+  .threads .s { display: none; }
+  .threads .mnew { font: 600 12px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .convo-head { padding: 14px 16px; }
+  .convo-head h2 { font-size: 24px; }
+  .log { padding: 20px 16px; }
+  .dock { padding-inline: 16px; }
+  .picks { grid-template-columns: 1fr; }
+  .shop { border-left: 0; border-top: 1px solid var(--rule); padding-inline: 0; }
+  .shop:first-child { border-top: 0; }
+}
+@media (min-width: 761px) { .threads .mnew-li { display: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <a class="mark" href="index.html">FACET</a>
+    <h1>The Edit</h1>
+  </div>
+  <a class="back" href="guide.html#step-6">← Back to the guide</a>
+</header>
+
+<div class="app">
+  <aside>
+    <div class="aside-head">
+      <span class="small-caps">One piece per conversation</span>
+      <button class="new" type="button" id="new">+ New conversation</button>
+    </div>
+    <ul class="threads" id="threads" aria-label="Conversations"></ul>
+  </aside>
+
+  <section class="convo" aria-live="polite">
+    <div class="convo-head">
+      <h2 id="title">New piece</h2>
+      <button class="del" type="button" id="del">Delete conversation</button>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="dock">
+      <div class="quick" id="quick"></div>
+      <form class="compose" id="compose" autocomplete="off">
+        <input type="text" id="text" placeholder="Type a reply…" aria-label="Your reply">
+        <button type="submit">Send</button>
+      </form>
+      <p class="fine">Links open searches on each store's site. Prices and stock are theirs, and change often.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const WKEY = 'facet-v1', EKEY = 'facet-edit-v1';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const ROMAN = ['I', 'II', 'III'];
+
+  const SHOPS = [
+    { key: 'zara', name: 'Zara', note: 'Trend-led and quick to turn over. Good for sharp tailoring and statement pieces at mid prices.',
+      url: q => 'https://www.zara.com/us/en/search?searchTerm=' + encodeURIComponent(q) },
+    { key: 'paloma', name: 'Paloma Wool', note: 'Barcelona label with artful knits, soft tailoring and sculptural shapes. The investment option.',
+      url: q => 'https://palomawool.com/search?q=' + encodeURIComponent(q) },
+    { key: 'asos', name: 'ASOS', note: 'Huge range across many brands, with petite, tall, plus and maternity fits. Filter by price after you land.',
+      url: q => 'https://www.asos.com/us/search/?q=' + encodeURIComponent(q) }
+  ];
+  const BUDGETS = [['Under $50', 50], ['$50–100', 100], ['$100–200', 200], ['$200+', 300]];
+
+  let W = null;
+  try { W = JSON.parse(localStorage.getItem(WKEY)); } catch (e) { W = null; }
+  if (!W || !Array.isArray(W.versions)) W = { versions: [], wish: [], items: [], common: '' };
+  let E = null;
+  try { E = JSON.parse(localStorage.getItem(EKEY)); } catch (e) { E = null; }
+  if (!E || !Array.isArray(E.threads)) E = { threads: [], active: null };
+  const save = () => { try { localStorage.setItem(EKEY, JSON.stringify(E)); } catch (e) { /* storage unavailable */ } };
+
+  const facet = id => W.versions.find(v => v.id === id);
+  const facetName = id => {
+    if (!id || id === 'none') return 'Not sure yet';
+    const i = W.versions.findIndex(v => v.id === id);
+    return i >= 0 ? (W.versions[i].name || '').trim() || 'Facet ' + ROMAN[i] : 'Not sure yet';
+  };
+  const shares = () => {
+    const tot = W.versions.reduce((a, v) => a + (+v.time || 0), 0) || 1;
+    return Object.fromEntries(W.versions.map(v => [v.id, (+v.time || 0) / tot]));
+  };
+  const verdictOf = i => {
+    if (i.verdict) return i.verdict;
+    const n = ['look', 'feel', 'fits', 'worn'].filter(k => i.q && i.q[k]).length;
+    return n === 4 ? 'keep' : n >= 2 ? 'maybe' : 'go';
+  };
+  const feelGood = () => (W.items || []).filter(i => i.q && i.q.look && i.q.feel && verdictOf(i) === 'keep').map(i => i.name);
+  const cur = () => E.threads.find(t => t.id === E.active);
+
+  /* ---------- conversation script ---------- */
+  function bot(t, text) { t.msgs.push({ from: 'bot', text }); }
+  function me(t, text) { t.msgs.push({ from: 'me', text }); }
+
+  function ask(t) {
+    if (t.step === 0) bot(t, 'Let\'s find one piece at a time. What are you thinking about adding?');
+    else if (t.step === 1) bot(t, `A ${t.piece.toLowerCase()}. Which facet of you is it for?`);
+    else if (t.step === 2) {
+      const f = facet(t.v), sh = shares();
+      let line = 'What would you like to spend on it?';
+      if (f) line = `${facetName(t.v)} is ${Math.round((sh[t.v] || 0) * 100)}% of your week${f.feel ? ` and wants to feel ${f.feel.toLowerCase()}` : ''}. ` + line;
+      bot(t, line);
+    } else if (t.step === 3) bot(t, 'Last one. Give me a few words for how it should look or feel.');
+  }
+  function results(t) {
+    const vibe = (t.vibe || '').split(/[,;]| and /).map(s => s.trim()).filter(Boolean)[0] || '';
+    const pc = t.piece.toLowerCase();
+    const queries = [pc, vibe ? `${vibe.toLowerCase()} ${pc}` : ''].filter(Boolean);
+    let budgetLine = '';
+    if (t.budget) {
+      budgetLine = t.budget <= 100
+        ? ` At around $${t.budget}, start with ASOS and Zara, and keep Paloma Wool for a sale or a splurge.`
+        : t.budget <= 200
+          ? ` With about $${t.budget}, all three are in range. Paloma Wool is where you'll feel the stretch.`
+          : ' Your budget has room for Paloma Wool. Compare fabric and construction before you commit.';
+    }
+    bot(t, `Here's where I'd start looking for ${vibe ? 'a ' + vibe + ' ' : 'a '}${t.piece.toLowerCase()}.${budgetLine}`);
+    t.msgs.push({ from: 'bot', type: 'links', queries });
+    const fg = feelGood().slice(0, 3);
+    bot(t, fg.length
+      ? `Before you check out, picture it with ${fg.join(', ')}. If you can build three outfits, it earns its place.`
+      : 'Before you check out, name three things you already own that it goes with. If you can\'t, wait a week.');
+    t.step = 4;
+  }
+
+  function answer(t, text, value) {
+    me(t, text);
+    if (t.step === 0) { t.piece = text.replace(/^(an?|the|some)\s+/i, ''); t.title = t.piece.charAt(0).toUpperCase() + t.piece.slice(1); t.step = 1; }
+    else if (t.step === 1) { t.v = value || 'none'; t.step = 2; }
+    else if (t.step === 2) {
+      const n = value || parseFloat(String(text).replace(/[^0-9.]/g, ''));
+      t.budget = isFinite(n) && n > 0 ? Math.round(n) : 0; t.step = 3;
+    } else if (t.step === 3) { t.vibe = value === 'skip' ? '' : text; results(t); save(); render(); return; }
+    ask(t); save(); render();
+  }
+
+  function newThread(pre) {
+    const t = { id: uid(), title: 'New piece', piece: '', v: null, budget: 0, vibe: '', step: 0, msgs: [], wishId: null };
+    if (pre) {
+      Object.assign(t, { title: pre.name || 'New piece', piece: pre.name || '', v: pre.v || 'none', budget: +pre.price || 0, wishId: pre.id });
+      bot(t, 'Let\'s find one piece at a time. What are you thinking about adding?');
+      me(t, t.piece);
+      t.step = 3;
+      bot(t, `A ${t.piece.toLowerCase()} for ${facetName(t.v)}, around $${t.budget}. Give me a few words for how it should look or feel.`);
+    } else ask(t);
+    E.threads.unshift(t); E.active = t.id; save();
+    return t;
+  }
+
+  /* ---------- Claude (only inside a Claude viewer) ---------- */
+  let sample = null;
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('sample').then(s => { sample = s; render(); }).catch(() => { sample = null; });
+  }
+  let busy = false;
+  async function askStylist(t, question) {
+    const f = facet(t.v);
+    const context = {
+      piece: t.piece, budgetUSD: t.budget || null, vibe: t.vibe || null,
+      facet: f ? { name: facetName(t.v), styleWords: f.words, whereTheyShowUp: f.moment, wantsToFeel: f.feel, shareOfWeek: Math.round((shares()[t.v] || 0) * 100) + '%' } : null,
+      feelGoodPiecesTheyOwn: feelGood(), whatTheirFavoritesHaveInCommon: W.common || null
+    };
+    const transcript = t.msgs.filter(m => m.text).slice(-12).map(m => (m.from === 'me' ? 'Person: ' : 'Stylist: ') + m.text).join('\n');
+    const prompt = `You are a warm, concise personal stylist inside a style workbook called FACET. The idea behind it: people are multifaceted, so their style is too. You are helping this person think through ONE piece they want to add.
+
+Context (JSON): ${JSON.stringify(context)}
+
+Conversation so far:
+${transcript}
+
+The person now says: ${question}
+
+Reply with only JSON: {"reply": string, "searches": string[]}.
+- "reply": at most 110 words of plain text (no markdown). Be specific about cut, fabric, color and how to wear it with pieces they already own.
+- "searches": 0 to 3 short search phrases (2 to 4 words each) worth trying at Zara, Paloma Wool and ASOS.
+Never invent product names, prices, links or stock.`;
+    busy = true;
+    t.msgs.push({ from: 'bot', thinking: true, text: '' });
+    render();
+    try {
+      const out = await sample.json(prompt, { modelTier: 'quick', cache: false });
+      t.msgs.pop();
+      bot(t, String(out.reply || '').trim() || 'I don\'t have more to add on that one.');
+      const qs = Array.isArray(out.searches) ? out.searches.map(String).filter(Boolean).slice(0, 3) : [];
+      if (qs.length) t.msgs.push({ from: 'bot', type: 'links', queries: qs });
+    } catch (e) {
+      t.msgs.pop();
+      if (e && e.code === 'not_granted') { sample = null; bot(t, 'No problem. I\'ll stick to searches.'); fallback(t, question); }
+      else if (e && e.code === 'cancelled') { /* nothing to add */ }
+      else bot(t, e && e.code === 'rate_limited' ? 'I need a moment. Try again shortly.' : 'That didn\'t go through. Try again in a moment.');
+    }
+    busy = false; save(); render();
+  }
+  function fallback(t, text) {
+    const q = text.length <= 40 ? text : t.piece;
+    bot(t, `Here are searches for "${q}".`);
+    t.msgs.push({ from: 'bot', type: 'links', queries: [q] });
+  }
+
+  /* ---------- render ---------- */
+  function linksHTML(queries) {
+    return `<div class="picks">${SHOPS.map(s => `
+      <div class="shop">
+        <h3>${s.name}</h3>
+        <p class="note">${s.note}</p>
+        ${queries.map(q => `<a href="${esc(s.url(q))}" target="_blank" rel="noopener"><span>${esc(q)}</span><span>↗</span></a>`).join('')}
+      </div>`).join('')}</div>`;
+  }
+  function render() {
+    $('threads').innerHTML = E.threads.map(t => `
+      <li><button type="button" data-thread="${t.id}" aria-current="${t.id === E.active}">
+        <span class="t">${esc(t.title)}</span>
+        <span class="s">${t.step >= 2 ? esc(facetName(t.v)) + (t.step === 4 ? ' · ready to shop' : '') : 'In progress'}</span>
+      </button></li>`).join('') + `<li class="mnew-li"><button type="button" id="new-m"><span class="t mnew">+ New</span></button></li>`;
+    const t = cur();
+    if (!t) return;
+    $('title').textContent = t.title;
+    $('log').innerHTML = t.msgs.map(m => {
+      if (m.from === 'me') return `<div class="msg me">${esc(m.text)}</div>`;
+      if (m.type === 'links') return linksHTML(m.queries);
+      if (m.thinking) return `<div class="msg bot thinking"><span class="who">Facet stylist</span><p>Thinking…</p></div>`;
+      return `<div class="msg bot"><span class="who">Facet stylist</span><p>${esc(m.text)}</p></div>`;
+    }).join('');
+    $('log').scrollTop = $('log').scrollHeight;
+
+    let q = [];
+    if (t.step === 0) {
+      const taken = new Set(E.threads.map(x => x.wishId).filter(Boolean));
+      q = (W.wish || []).filter(w => w.name && !taken.has(w.id)).map(w => ({ label: w.name, wish: w.id }));
+    } else if (t.step === 1) {
+      q = W.versions.map(v => ({ label: facetName(v.id), value: v.id })).concat([{ label: 'Not sure yet', value: 'none' }]);
+    } else if (t.step === 2) {
+      q = BUDGETS.map(([l, v]) => ({ label: l, value: v }));
+    } else if (t.step === 3) {
+      const f = facet(t.v);
+      const words = f && f.words ? f.words.split(',').map(s => s.trim()).filter(Boolean) : ['minimal', 'soft', 'polished'];
+      q = [{ label: words.join(', '), value: '' }].concat(words.map(w => ({ label: w, value: '' }))).concat([{ label: 'Skip', value: 'skip' }]);
+    } else if (t.step === 4) {
+      if (sample) q.push({ label: 'How should I style it?', ask: true, accent: true });
+      q.push({ label: 'Start another piece', start: true });
+    }
+    $('quick').innerHTML = q.map((o, i) => `<button type="button" class="chip${o.accent ? ' accent' : ''}" data-q="${i}">${esc(o.label)}</button>`).join('');
+    $('quick').hidden = !q.length;
+    render.q = q;
+    $('text').placeholder = t.step === 0 ? 'e.g. A camel coat' : t.step === 2 ? 'Or type an amount, e.g. 120' : t.step === 4 ? (sample ? 'Ask the stylist anything about this piece…' : 'Try another search…') : 'Type a reply…';
+    $('del').hidden = E.threads.length < 2 && t.step === 0;
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.thread) { E.active = b.dataset.thread; save(); render(); }
+    else if (b.id === 'new' || b.id === 'new-m') { newThread(); render(); $('text').focus(); }
+    else if (b.id === 'del') {
+      E.threads = E.threads.filter(t => t.id !== E.active);
+      if (!E.threads.length) newThread(); else E.active = E.threads[0].id;
+      save(); render();
+    } else if (b.dataset.q !== undefined) {
+      const o = render.q[+b.dataset.q], t = cur();
+      if (!o || busy) return;
+      if (o.wish) {
+        const w = W.wish.find(x => x.id === o.wish);
+        const idx = E.threads.indexOf(t); E.threads.splice(idx, 1);
+        newThread(w); render();
+      } else if (o.start) { newThread(); render(); }
+      else if (o.ask) { me(t, o.label); askStylist(t, o.label); }
+      else answer(t, o.label, o.value);
+    }
+  });
+  $('compose').addEventListener('submit', e => {
+    e.preventDefault();
+    const text = $('text').value.trim(), t = cur();
+    if (!text || busy) return;
+    $('text').value = '';
+    if (t.step < 4) { answer(t, text); return; }
+    me(t, text);
+    if (sample) askStylist(t, text); else { fallback(t, text); save(); render(); }
+  });
+
+  /* ---------- start ---------- */
+  let start = null;
+  try { start = localStorage.getItem('facet-edit-start'); localStorage.removeItem('facet-edit-start'); } catch (e) { /* ignore */ }
+  const startWish = start && (W.wish || []).find(w => w.id === start);
+  if (startWish) {
+    const existing = E.threads.find(t => t.wishId === startWish.id);
+    if (existing) E.active = existing.id; else newThread(startWish);
+  } else if (!E.threads.length) {
+    const first = (W.wish || []).find(w => w.name);
+    if (first) {
+      const t = newThread(first);
+      const f = facet(first.v);
+      const vibe = f && f.words ? f.words.split(',')[0].trim() : '';
+      me(t, vibe || 'Skip'); t.vibe = vibe; results(t); save();
+    } else newThread();
+  } else if (!cur()) E.active = E.threads[0].id;
+  render();
+})();
+</script>
+</body>
+</html>

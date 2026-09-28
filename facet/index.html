@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Facet Style Workbook</title>
+<meta name="description" content="An interactive style workbook: understand the different versions of you, shop your own closet, and buy with intent.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --paper: #FFFFFF; --ink: #0D0D0F; --muted: #6C6C73; --rule: #E3E3E6; --soft: #F6F6F7;
+  --accent: #2536C9; --on-accent: #FFFFFF;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --sans: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--paper); }
+body { margin: 0; color: var(--ink); font: 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 24px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.05; text-wrap: balance; }
+p { margin: 0; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.kicker { font: 600 12px/1.3 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.small-caps { font: 600 11px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-block: 12px; }
+.nav .mark { font: 800 20px/1 var(--display); text-decoration: none; }
+.nav-links { display: flex; gap: 22px; }
+.nav-links a { font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+.nav-links a:hover { color: var(--ink); }
+
+.strip { display: flex; justify-content: space-between; gap: 16px; padding-block: 18px 10px; border-bottom: 1px solid var(--ink); }
+.logo { font: 800 clamp(96px, 23vw, 292px)/.82 var(--display); letter-spacing: -.035em; text-align: center; padding-block: 18px 10px; }
+.cover { display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px; padding-block: 36px 72px; border-top: 1px solid var(--rule); align-items: start; }
+.cover h2 { font-size: clamp(40px, 5.6vw, 68px); font-style: italic; margin-block: 12px 18px; }
+.cover .dek { font-size: 20px; line-height: 1.5; max-width: 40ch; }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 14px 24px; font: 600 13px var(--sans); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; text-decoration: none; border-radius: 0; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn.small { padding: 8px 14px; font-size: 12px; }
+.link { background: none; border: 0; padding: 0; cursor: pointer; font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; }
+.resume { margin-top: 18px; font-size: 15px; }
+.resume a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.resume a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.confirm { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; font-size: 15px; }
+.back-note { margin-top: 18px; font-size: 15px; color: var(--muted); max-width: 52ch; }
+.back-note .link { font-size: 11px; color: var(--ink); }
+.io-msg { font-size: 14px; margin-top: 8px; }
+.io-msg.bad { color: #B3261E; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 22px; }
+
+.pie-wrap { display: grid; gap: 22px; align-content: start; }
+.pie-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.pie { width: 100%; max-width: 340px; justify-self: center; overflow: visible; }
+.pie path, .pie circle { stroke: var(--paper); stroke-width: 3; }
+.pie path:hover, .pie circle:hover { opacity: .88; }
+.pie text { font: italic 400 24px var(--display); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.pie text.pct { font: 600 13px var(--sans); font-style: normal; letter-spacing: .04em; }
+.facets { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.facets li { display: grid; grid-template-columns: 14px 32px 1fr; gap: 10px; align-items: baseline; }
+.facets .sw { width: 12px; height: 12px; display: inline-block; }
+.facets .rn { font: italic 400 22px var(--display); color: var(--accent); }
+.facets b { font-family: var(--display); font-weight: 500; font-size: 20px; }
+.facets span.w { display: block; color: var(--muted); font-size: 15px; }
+.facets-note { font-size: 13px; color: var(--muted); font-style: italic; }
+
+section.part { padding-block: 72px; border-top: 1px solid var(--ink); }
+.part-head { display: grid; gap: 12px; max-width: 720px; margin-bottom: 36px; }
+.part-head h2 { font-size: clamp(36px, 5vw, 56px); }
+.toc { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 48px; }
+.toc a { display: grid; grid-template-columns: 48px 1fr auto; gap: 14px; align-items: baseline; padding-block: 18px; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.toc a:hover h3 { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.toc .n { font: italic 400 26px var(--display); color: var(--accent); }
+.toc h3 { font-size: 25px; }
+.toc p { color: var(--muted); font-size: 15px; margin-top: 4px; }
+.toc .min { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.how { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--rule); }
+.how div { padding: 24px; border-left: 1px solid var(--rule); display: grid; gap: 8px; align-content: start; }
+.how div:first-child { border-left: 0; padding-left: 0; }
+.how h3 { font: italic 400 26px var(--display); }
+.how p { color: var(--muted); }
+.pull { font: italic 400 clamp(28px, 4vw, 44px)/1.2 var(--display); max-width: 900px; text-wrap: balance; }
+.edit { display: grid; grid-template-columns: 1fr auto; gap: 20px 40px; align-items: center; border: 1px solid var(--ink); padding: 36px; }
+.edit h2 { font: italic 400 clamp(32px, 4vw, 44px)/1.1 var(--display); }
+.edit p { color: var(--muted); max-width: 56ch; margin-top: 10px; }
+.shops { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 16px; font: 400 22px var(--display); }
+
+footer { border-top: 1px solid var(--ink); padding-block: 28px 56px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+footer .mark { font: 800 28px var(--display); }
+footer .muted { font-size: 14px; }
+
+@media (max-width: 880px) {
+  .cover { grid-template-columns: 1fr; gap: 40px; }
+  .toc { grid-template-columns: 1fr; }
+  .how { grid-template-columns: 1fr; }
+  .how div { border-left: 0; border-top: 1px solid var(--rule); padding-inline: 0; }
+  .how div:first-child { border-top: 0; }
+  .edit { grid-template-columns: 1fr; padding: 26px 22px; }
+}
+@media (max-width: 540px) {
+  .wrap { padding-inline: 16px; }
+  body { font-size: 16px; }
+  .strip { font-size: 10px; }
+  section.part { padding-block: 56px; }
+  .nav-links { gap: 16px; }
+  .btn { padding: 13px 18px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Site">
+  <div class="wrap nav-inner">
+    <a class="mark" href="#top">FACET</a>
+    <div class="nav-links">
+      <a href="guide.html">The Guide</a>
+      <a href="shop.html">The Edit</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap" id="top">
+  <header>
+    <div class="strip small-caps"><span>The Closet Issue</span><span>No. 01 · Autumn 2026</span></div>
+    <h1 class="logo">FACET</h1>
+    <div class="cover">
+      <div>
+        <p class="kicker">An interactive style workbook</p>
+        <h2>You are not one style. You are several.</h2>
+        <p class="dek">A short guide to understanding the different versions of you, dressing the ones you actually live as, and shopping with intent.</p>
+        <div class="ctas">
+          <button class="btn" type="button" id="start">Start your workbook →</button>
+          <button class="btn ghost" type="button" id="sample">Explore a sample</button>
+        </div>
+        <p class="resume" id="resume" hidden></p>
+        <div class="confirm" id="confirm" hidden>
+          <span>This replaces your answers with the sample.</span>
+          <button class="btn small" type="button" id="sample-yes">Load sample</button>
+          <button class="link" type="button" id="sample-no">Keep mine</button>
+        </div>
+        <div class="meta small-caps"><span>8 steps</span><span>About 90 minutes, with a closet clean-out</span><span>Saves as you go</span></div>
+        <p class="back-note">Take it in more than one sitting. Your answers stay in this browser, so you can close the page and pick up where you left off. On a new device? <button class="link" type="button" id="restore">Restore a saved copy</button></p>
+        <p class="io-msg" id="io-msg" aria-live="polite"></p>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+      </div>
+      <div class="pie-wrap">
+        <div class="pie-head"><span class="small-caps">Your week, by facet</span></div>
+        <svg class="pie" id="pie" viewBox="-170 -170 340 340" role="img" aria-label="Pie chart of how your week splits across your three facets"></svg>
+        <ul class="facets" id="facets"></ul>
+        <p class="facets-note" id="facets-note"></p>
+      </div>
+    </div>
+  </header>
+
+  <section class="part" id="inside">
+    <div class="part-head">
+      <p class="kicker">Inside this issue</p>
+      <h2>The guide, step by step</h2>
+    </div>
+    <ol class="toc">
+      <li><a href="guide.html#step-1"><span class="n">01</span><span><h3>What is style?</h3><p>Why style is personal and always changing. Write your style in one sentence.</p></span><span class="min">5 min</span></a></li>
+      <li><a href="guide.html#step-2"><span class="n">02</span><span><h3>Pop quiz: your three facets</h3><p>Name three versions of you, how they dress, and what they share.</p></span><span class="min">10 min</span></a></li>
+      <li><a href="guide.html#step-3"><span class="n">03</span><span><h3>Shop your closet</h3><p>Four questions for every piece. Find what makes you look and feel good.</p></span><span class="min">45 min</span></a></li>
+      <li><a href="guide.html#step-4"><span class="n">04</span><span><h3>Let go</h3><p>Sell on Depop, Poshmark or ThredUp. Donate, swap, tailor or recycle the rest.</p></span><span class="min">10 min</span></a></li>
+      <li><a href="guide.html#step-5"><span class="n">05</span><span><h3>Who you've been dressing</h3><p>Your week against your closet. See which facet you've been shopping for.</p></span><span class="min">5 min</span></a></li>
+      <li><a href="guide.html#step-6"><span class="n">06</span><span><h3>Add with intent</h3><p>A short list of what to add, each piece checked against your closet.</p></span><span class="min">10 min</span></a></li>
+      <li><a href="guide.html#step-7"><span class="n">07</span><span><h3>Set your budget</h3><p>Split what you can spend the way you split your week. Cost per wear.</p></span><span class="min">5 min</span></a></li>
+      <li><a href="guide.html#step-8"><span class="n">08</span><span><h3>Your Facet profile</h3><p>Everything you worked out, on one page to come back to each season.</p></span><span class="min">2 min</span></a></li>
+    </ol>
+  </section>
+
+  <section class="part">
+    <p class="pull">Before you buy something new, find out who you've been buying for.</p>
+  </section>
+
+  <section class="part">
+    <div class="part-head">
+      <p class="kicker">How it works</p>
+      <h2>A workbook, not a quiz</h2>
+    </div>
+    <div class="how">
+      <div><h3>One step at a time</h3><p>Each step has a short read and an exercise. Skip around whenever you like.</p></div>
+      <div><h3>Your answers build on each other</h3><p>Your facets shape the closet check, which shapes your list, which shapes your budget.</p></div>
+      <div><h3>Private by default</h3><p>Everything saves in your browser as you go. Nothing is sent anywhere.</p></div>
+    </div>
+  </section>
+
+  <section class="part">
+    <div class="edit">
+      <div>
+        <p class="kicker">The Edit</p>
+        <h2>Talk it through before you buy.</h2>
+        <p>Each piece on your list gets its own conversation: which facet it's for, what to spend, how it should feel. Then it points you to places to look.</p>
+        <div class="shops"><span>Zara</span><span>Paloma Wool</span><span>ASOS</span></div>
+      </div>
+      <a class="btn" href="shop.html">Open The Edit →</a>
+    </div>
+  </section>
+
+  <footer>
+    <span class="mark">FACET</span>
+    <span class="muted">Style, in every facet.</span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  const KEY = 'facet-v1';
+  const ROMAN = ['I', 'II', 'III'];
+  const STEPS = ['What is style?', 'Your three facets', 'Shop your closet', 'Let go', 'Who you dress', 'Add with intent', 'Budget', 'Your profile'];
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const uid = () => Math.random().toString(36).slice(2, 9);
+
+  function item(name, cat, v, q, extra) {
+    return Object.assign({ id: uid(), name, cat, v, q: { look: !!q[0], feel: !!q[1], fits: !!q[2], worn: !!q[3] }, verdict: null, exit: 'donate' }, extra || {});
+  }
+  function sample() {
+    return {
+      example: true, step: 1, visited: [1],
+      then: ['preppy', 'polished', 'playful', 'practical'],
+      now: ['minimal', 'relaxed', 'polished', 'bold'],
+      statement: 'My style is relaxed and polished, with one bold thing.',
+      core: 'Gold jewelry, clean lines, and shoes I can walk in',
+      reflection: 'I own more party clothes than work clothes, but I spend half my week at work.',
+      versions: [
+        { id: 'v1', name: 'Monday Me', moment: 'Office days and client meetings', words: 'polished, sharp, calm', piece: 'Wide-leg black trousers', feel: 'Capable', time: 50 },
+        { id: 'v2', name: 'Saturday Me', moment: 'Farmers market, park, coffee with friends', words: 'easy, cozy, a little sporty', piece: 'Worn-in denim jacket', feel: 'Free', time: 35 },
+        { id: 'v3', name: 'After-Dark Me', moment: 'Dinners, birthdays, live music', words: 'bold, glowing, playful', piece: 'Satin slip skirt', feel: 'Magnetic', time: 15 }
+      ],
+      items: [
+        item('Black wide-leg trousers', 'Bottoms', 'v1', [1, 1, 1, 1]),
+        item('Cream silk blouse (pulls at the buttons)', 'Tops', 'v1', [0, 1, 0, 1], { exit: 'tailor' }),
+        item('Denim jacket', 'Outerwear', 'v2', [1, 1, 1, 1]),
+        item('Grey hoodie', 'Activewear', 'v2', [1, 1, 1, 1]),
+        item('Striped long-sleeve tee', 'Tops', 'v2', [1, 1, 1, 1]),
+        item('Gold hoop earrings', 'Bags & accessories', 'v3', [1, 1, 1, 1]),
+        item('Sequin mini dress, worn once', 'Dresses & sets', 'v3', [1, 0, 0, 0], { exit: 'sell' }),
+        item('Hiking boots, never worn', 'Shoes', 'none', [0, 0, 1, 0], { exit: 'sell' }),
+        item('Linen blazer for "someday"', 'Outerwear', 'none', [1, 0, 1, 0]),
+        item('Pencil skirt from an old job', 'Bottoms', 'none', [0, 0, 0, 1], { exit: 'donate' })
+      ],
+      wish: [
+        { id: 'w1', name: 'Navy tailored blazer', v: 'v1', why: 'gap', pairs: 5, price: 140, wears: 60 },
+        { id: 'w2', name: 'Straight-leg work trousers', v: 'v1', why: 'gap', pairs: 4, price: 90, wears: 80 },
+        { id: 'w3', name: 'Metallic heels', v: 'v3', why: 'want', pairs: 1, price: 110, wears: 4 }
+      ],
+      common: 'High waists, soft fabrics, deep colors, and nothing I have to tug at all day.',
+      budget: { amount: 150, period: 'month' },
+      cpw: { price: 120, week: 1, years: 3 },
+      checks: [], filter: 'all', scope: 'all'
+    };
+  }
+
+  let S = null;
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+  const hasOwn = S && !S.example && (S.versions || []).some(v => (v.name || '').trim()) || (S && !S.example && ((S.items || []).length || (S.statement || '').trim()));
+  const store = st => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* storage unavailable */ } };
+
+  // Cover facets: the reader's own if they have them, otherwise the sample.
+  const shown = hasOwn || (S && S.example) ? S : sample();
+  const tot = shown.versions.reduce((a, v) => a + (+v.time || 0), 0) || 1;
+  const COLORS = ['#0D0D0F', '#2536C9', '#A9B2F0'];
+  const INK_ON = ['#FFFFFF', '#FFFFFF', '#0D0D0F'];
+  const facetName = (v, i) => (v.name || '').trim() || 'Facet ' + ROMAN[i];
+  const share = v => (+v.time || 0) / tot;
+  $('facets').innerHTML = shown.versions.map((v, i) => `
+    <li><i class="sw" style="background:${COLORS[i]}"></i><span class="rn">${ROMAN[i]}</span><span><b>${esc(facetName(v, i))}</b><span class="w">${esc(v.words || 'Three words for their style')} · ${Math.round(share(v) * 100)}% of the week</span></span></li>`).join('');
+
+  // Pie chart: one slice per facet, sized by share of the week, starting at 12 o'clock.
+  const R = 160;
+  let a0 = -Math.PI / 2, svg = '';
+  shown.versions.forEach((v, i) => {
+    const f = share(v);
+    if (f <= 0) return;
+    const title = `<title>${esc(facetName(v, i))}: ${Math.round(f * 100)}% of the week</title>`;
+    const a1 = a0 + f * 2 * Math.PI, mid = (a0 + a1) / 2;
+    if (f >= 0.999) svg += `<circle r="${R}" fill="${COLORS[i]}">${title}</circle>`;
+    else {
+      const p = a => `${(R * Math.cos(a)).toFixed(2)} ${(R * Math.sin(a)).toFixed(2)}`;
+      svg += `<path d="M0 0 L${p(a0)} A${R} ${R} 0 ${f > 0.5 ? 1 : 0} 1 ${p(a1)} Z" fill="${COLORS[i]}">${title}</path>`;
+    }
+    if (f >= 0.06) {
+      const lr = f >= 0.999 ? 0 : R * 0.6, x = lr * Math.cos(mid), y = lr * Math.sin(mid);
+      svg += `<text x="${x.toFixed(1)}" y="${(y - 10).toFixed(1)}" fill="${INK_ON[i]}">${ROMAN[i]}</text><text class="pct" x="${x.toFixed(1)}" y="${(y + 14).toFixed(1)}" fill="${INK_ON[i]}">${Math.round(f * 100)}%</text>`;
+    }
+    a0 = a1;
+  });
+  $('pie').innerHTML = svg;
+  $('facets-note').textContent = hasOwn ? 'Your three facets.' : 'An example. You\'ll name your own in step 2.';
+
+  if (S && S.step && (hasOwn || S.example)) {
+    $('resume').hidden = false;
+    $('resume').innerHTML = `${S.example ? 'Exploring the sample.' : 'Welcome back.'} <a href="guide.html#step-${S.step}">Continue at step ${S.step}: ${esc(STEPS[S.step - 1])} →</a>`;
+    $('start').textContent = S.example ? 'Start your own workbook →' : 'Continue your workbook →';
+  }
+
+  $('start').addEventListener('click', () => {
+    if (!S || S.example) { try { localStorage.removeItem(KEY); localStorage.removeItem('facet-edit-v1'); } catch (e) { /* ignore */ } location.href = 'guide.html#step-1'; }
+    else location.href = 'guide.html#step-' + (S.step || 1);
+  });
+  const loadSample = () => {
+    store(sample());
+    try { localStorage.removeItem('facet-edit-v1'); } catch (e) { /* ignore */ }
+    location.href = 'guide.html#step-1';
+  };
+  $('sample').addEventListener('click', () => { if (hasOwn) $('confirm').hidden = false; else loadSample(); });
+  $('sample-yes').addEventListener('click', loadSample);
+  $('sample-no').addEventListener('click', () => { $('confirm').hidden = true; });
+
+  $('restore').addEventListener('click', () => $('import-file').click());
+  $('import-file').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      let obj = null;
+      try { obj = JSON.parse(r.result); } catch (err) { obj = null; }
+      if (!obj || obj.app !== 'facet' || !obj.workbook || !Array.isArray(obj.workbook.versions)) {
+        $('io-msg').textContent = 'That file isn\'t a Facet workbook. Choose the .json file you saved from Facet.';
+        $('io-msg').classList.add('bad'); return;
+      }
+      obj.workbook.example = false;
+      store(obj.workbook);
+      if (obj.edit) { try { localStorage.setItem('facet-edit-v1', JSON.stringify(obj.edit)); } catch (err) { /* ignore */ } }
+      location.href = 'guide.html#step-' + (obj.workbook.step || 1);
+    };
+    r.readAsText(f);
+  });
+})();
+</script>
+</body>
+</html>
